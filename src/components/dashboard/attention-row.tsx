@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { DaysInStageBadge } from "@/components/shared/days-in-stage-badge";
 import type { AttentionItem } from "@/lib/actions/dashboard";
-import { formatCurrency } from "@/lib/format";
+import { formatCurrency, formatLongDate, formatShortDate, formatTimeOfDay } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { ActivityComposer } from "@/components/activities/activity-composer";
 import { LogOutcomeDialog } from "@/components/activities/log-outcome-dialog";
@@ -22,6 +22,28 @@ export function AttentionRow({ item }: { item: AttentionItem }) {
   const router = useRouter();
   const [outcomeOpen, setOutcomeOpen] = useState(false);
   const isOverdue = item.kind === "overdue-activity";
+  const isScheduled = item.kind === "scheduled-activity";
+
+  /**
+   * Artifact task-ledger time cell: "Overdue · Oct 5" / "8:45 AM" /
+   * "Due October 8" / "16d stalled" — mono, red when overdue.
+   */
+  function timeLabel(): string {
+    if (isOverdue) {
+      if (!item.daysOverdue || !item.dueAt) return "Overdue";
+      return `Overdue · ${formatShortDate(item.dueAt)}`;
+    }
+    if (isScheduled && item.dueAt) {
+      const due = new Date(item.dueAt);
+      const now = new Date();
+      const sameDay =
+        due.getFullYear() === now.getFullYear() &&
+        due.getMonth() === now.getMonth() &&
+        due.getDate() === now.getDate();
+      return sameDay ? formatTimeOfDay(due) : `Due ${formatLongDate(due)}`;
+    }
+    return `${item.daysInStage ?? 0}d stalled`;
+  }
 
   const detailHref = item.dealId
     ? `/deals/${item.dealId}`
@@ -35,13 +57,7 @@ export function AttentionRow({ item }: { item: AttentionItem }) {
 
   return (
     <article className={cn("df-task", isOverdue && "is-overdue")}>
-      <time>
-        {isOverdue
-          ? item.daysOverdue === 0
-            ? "Overdue"
-            : `Overdue · ${item.daysOverdue}d`
-          : `${item.daysInStage ?? 0}d stalled`}
-      </time>
+      <time>{timeLabel()}</time>
       <div className="min-w-0">
         <b className="truncate">{item.title}</b>
         <small className="truncate">{item.context}</small>
@@ -50,10 +66,10 @@ export function AttentionRow({ item }: { item: AttentionItem }) {
             <span className="df-urgency act">
               {item.daysOverdue === 0 ? "Overdue" : `${item.daysOverdue}d overdue`}
             </span>
-          ) : (
+          ) : isScheduled ? null : (
             <DaysInStageBadge days={item.daysInStage ?? 0} />
           )}
-          {isOverdue && item.activityId && (
+          {(isOverdue || isScheduled) && item.activityId && (
             <>
               <Button size="sm" variant="outline" onClick={() => setOutcomeOpen(true)}>
                 Log outcome
@@ -66,7 +82,7 @@ export function AttentionRow({ item }: { item: AttentionItem }) {
               />
             </>
           )}
-          {!isOverdue && item.dealId && (
+          {!isOverdue && !isScheduled && item.dealId && (
             <ActivityComposer
               dealId={item.dealId}
               trigger={
