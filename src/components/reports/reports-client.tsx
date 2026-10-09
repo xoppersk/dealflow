@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Toaster, toast } from "sonner";
 
-import { formatCurrency } from "@/lib/format";
+import { formatCompactCurrency, formatCurrency } from "@/lib/format";
 import { getReportsData, type ReportsData } from "@/lib/actions/reports";
 
 import { ForecastChart, Leaderboard, StageBarChart, WinRateTrend } from "./charts";
@@ -95,7 +95,8 @@ export function ReportsClient() {
       <Toaster position="bottom-right" />
       <PageHeader
         title="Reports"
-        description="Pipeline health, forecast, and coaching — every number drills through to its deals."
+        kicker="Dealflow / Management"
+        description="Inspect conversion, velocity, pipeline health, and team activity without hiding definitions."
       />
 
       <ReportFilterBar initial={defaultRange()} team={team} onApply={apply} />
@@ -172,6 +173,44 @@ export function ReportsClient() {
                 <WinRateTrend data={data.winRateTrend} />
                 <Leaderboard data={data.leaderboard} onExport={exportLeaderboard} />
               </div>
+
+              {/* Calculation notes — definitions beside every metric. */}
+              <section aria-label="Calculation notes">
+                <div className="df-section-rule">
+                  <h4>Calculation notes</h4>
+                  <span>Same records, visible definitions</span>
+                </div>
+                <div className="mt-2 border border-border bg-card px-4">
+                  <div className="flex items-baseline gap-4 border-b border-border py-3">
+                    <span className="df-money text-sm">{data.kpis.winRate90d}%</span>
+                    <p className="min-w-0 flex-1">
+                      <b className="block text-sm font-semibold">Win rate</b>
+                      <small className="block text-xs text-muted-foreground">
+                        Won deals divided by all closed-won and closed-lost
+                        deals. Open deals are excluded.
+                      </small>
+                    </p>
+                    <time className="tnum shrink-0 text-xs text-muted-foreground">
+                      {data.kpis.won90d} won ÷ {data.kpis.won90d + data.kpis.lost90d} closed
+                    </time>
+                  </div>
+                  <div className="flex items-baseline gap-4 border-b border-border py-3">
+                    <span className="df-money text-sm">Σ</span>
+                    <p className="min-w-0 flex-1">
+                      <b className="block text-sm font-semibold">Open value reconciliation</b>
+                      <small className="block text-xs text-muted-foreground">
+                        {data.pipelineByStage
+                          .map((s) => formatCompactCurrency(s.value, data.currency))
+                          .join(" + ")}
+                      </small>
+                    </p>
+                    <time className="df-money shrink-0 text-sm">
+                      {formatCompactCurrency(data.kpis.totalOpenValue, data.currency)}
+                    </time>
+                  </div>
+                </div>
+              </section>
+
               <StalledTable deals={data.stalled} thresholdDays={data.staleThresholdDays} />
             </>
           )}

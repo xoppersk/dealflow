@@ -32,7 +32,7 @@ import type {
   WinRateWeek,
 } from "@/lib/actions/reports";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, cn } from "./ui";
+import { cn } from "./ui";
 
 const TICK = { fill: "var(--muted-foreground)", fontSize: 12 } as const;
 
@@ -50,22 +50,31 @@ export function ChartCard({
   height?: number;
 }) {
   return (
-    <Card>
-      <CardHeader className="flex-row items-start justify-between gap-2">
-        <div className="flex flex-col gap-1.5">
-          <CardTitle>{title}</CardTitle>
-          {description && <CardDescription>{description}</CardDescription>}
+    <figure
+      className="m-0 border border-border bg-card pt-[13px]"
+      style={{ borderTop: "2px solid var(--tape-border)" }}
+    >
+      <div className="mb-4 flex items-start justify-between gap-4 px-5">
+        <div>
+          <h4 className="font-display text-[17px] font-semibold tracking-tight">
+            {title}
+          </h4>
+          {description && (
+            <p className="mt-1 font-mono text-[9px] uppercase leading-relaxed tracking-[0.08em] text-muted-foreground">
+              {description}
+            </p>
+          )}
         </div>
         {actions}
-      </CardHeader>
-      <CardContent>
+      </div>
+      <div className="px-5 pb-5">
         <div style={{ height }} className="w-full">
           <ResponsiveContainer width="100%" height="100%">
             {children as React.ReactElement}
           </ResponsiveContainer>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </figure>
   );
 }
 

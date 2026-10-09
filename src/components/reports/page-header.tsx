@@ -4,24 +4,28 @@ import Link from "next/link";
 
 import { Button } from "./ui";
 
-/** Consistent page header: title, description, actions slot. */
+import { PageHeader as SharedPageHeader } from "@/components/shared/page-header";
+
+/** Consistent page header: kicker, title, description, actions slot. */
 export function PageHeader({
   title,
   description,
   actions,
+  kicker,
 }: {
   title: string;
   description?: string;
   actions?: React.ReactNode;
+  kicker?: string;
 }) {
   return (
-    <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
-      <div>
-        <h1 className="text-3xl font-semibold tracking-tight">{title}</h1>
-        {description && <p className="mt-1 text-sm text-muted-foreground">{description}</p>}
-      </div>
-      {actions && <div className="flex items-center gap-2">{actions}</div>}
-    </div>
+    <SharedPageHeader
+      title={title}
+      kicker={kicker}
+      description={description}
+      actions={actions}
+      className="mb-6"
+    />
   );
 }
 
@@ -36,7 +40,7 @@ export function EmptyState({
   action?: React.ReactNode;
 }) {
   return (
-    <div className="flex flex-col items-center justify-center gap-3 rounded-[10px] border border-dashed bg-card px-6 py-12 text-center">
+    <div className="flex flex-col items-center justify-center gap-3 rounded-[2px] border border-dashed bg-card px-6 py-12 text-center">
       <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted" aria-hidden>
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-muted-foreground">
           <path d="M3 20h18" strokeLinecap="round" />
@@ -66,20 +70,19 @@ export function Forbidden({
   backLabel?: string;
 }) {
   return (
-    <div className="mx-auto flex max-w-md flex-col items-center gap-3 px-6 py-24 text-center">
-      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted" aria-hidden>
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-muted-foreground">
-          <rect x="4" y="10" width="16" height="11" rx="2" />
-          <path d="M8 10V7a4 4 0 0 1 8 0v3" strokeLinecap="round" />
-        </svg>
+    <div className="mx-auto w-full max-w-3xl px-4 py-16">
+      <div className="df-state-content">
+        <h1>You don&apos;t have access to this</h1>
+        <p className="mt-3 max-w-sm text-sm text-muted-foreground">
+          <span className="font-medium text-foreground">{title}.</span> {message}{" "}
+          Ask your admin if you need it.
+        </p>
+        <div className="mt-6">
+          <Button asChild className="df-state-action border-0">
+            <Link href={backHref}>{backLabel}</Link>
+          </Button>
+        </div>
       </div>
-      <h1 className="text-2xl font-semibold tracking-tight">You don&apos;t have access to this</h1>
-      <p className="text-sm text-muted-foreground">
-        <span className="font-medium text-foreground">{title}.</span> {message}
-      </p>
-      <Button asChild variant="outline" className="mt-2">
-        <Link href={backHref}>{backLabel}</Link>
-      </Button>
     </div>
   );
 }

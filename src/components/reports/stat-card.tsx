@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 
-import { Card, CardContent, cn } from "./ui";
+import { Card, CardContent } from "./ui";
 
 /**
  * KPI stat card: label, tabular-numeral value, optional hint line.
@@ -22,20 +22,15 @@ export function StatCard({
   href?: string;
 }) {
   const body = (
-    <Card className={cn(href && "transition-colors hover:border-primary/40")}>
-      <CardContent className="p-5">
-        <p className="text-sm text-muted-foreground">{label}</p>
-        <p
-          className={cn(
-            "tnum mt-1 text-3xl font-semibold tracking-tight",
-            variant === "alert" && "text-destructive",
-          )}
-        >
-          {value}
-        </p>
-        {hint && <p className="tnum mt-1 text-xs text-muted-foreground">{hint}</p>}
-      </CardContent>
-    </Card>
+    <div className={`df-kpi${href ? " transition-colors hover:border-primary/40" : ""}`}>
+      <span>{label}</span>
+      <strong
+        style={variant === "alert" ? { color: "var(--urgency-act)" } : undefined}
+      >
+        {value}
+      </strong>
+      {hint && <small className="tnum">{hint}</small>}
+    </div>
   );
 
   if (href) {
