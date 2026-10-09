@@ -4,13 +4,16 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
- * Dealflow design tokens — "calm command center" (DESIGN-BRIEF.md §3,
- * UI-DESIGN.md §5). Warm paper background, deep teal primary, strict
- * three-step urgency scale (slate = on track, amber = watch, red = act).
- * Radius 10px (0.625rem). Light theme is the default theme.
+ * Dealflow design tokens — "sober green ledger" (flagship-ui-designs,
+ * Dealflow System section — authoritative).
+ *
+ * Newsreader = display serif (page titles, brand, chart headings).
+ * Work Sans = UI text. IBM Plex Mono = every figure (tabular numerals).
+ * Deep teal #0F766E is the single action color. Sharp 2px radii, market-tape
+ * lane headers, dark-green command sidebar. Light theme is default.
  */
 :root {
-  --radius: 0.625rem;
+  --radius: 0.25rem;
   --background: #fafaf9;
   --foreground: #1c1917;
   --card: #ffffff;
@@ -40,19 +43,35 @@
   --border: #e7e5e4;
   --input: #e7e5e4;
   --ring: #0f766e;
+  /* Ledger-specific ink + tape colors from the approved prototype. */
+  --ledger-ink: #18211d;
+  --money: #17634d;
+  --tape-border: #45695b;
+  --lane: #e8ede9;
+  --hint-bg: #f7f3df;
+  --hint-border: #ddd4a6;
+  --hint-ink: #514b2e;
+  /* Urgency scale — strict, used identically everywhere. */
+  --urgency-track: #64748b;
+  --urgency-watch: #d97706;
+  --urgency-act: #dc2626;
   --chart-1: #0f766e;
   --chart-2: #2563eb;
   --chart-3: #7c3aed;
   --chart-4: #d97706;
   --chart-5: #78716c;
-  --sidebar: #ffffff;
-  --sidebar-foreground: #1c1917;
+  /* Command sidebar — dark green ledger rail, both themes. */
+  --sidebar: #18372c;
+  --sidebar-foreground: #eef5ef;
+  --sidebar-nav: #aebfb5;
+  --sidebar-active: #275040;
+  --sidebar-indicator: #e5b94f;
   --sidebar-primary: #0f766e;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #f5f5f4;
-  --sidebar-accent-foreground: #1c1917;
-  --sidebar-border: #e7e5e4;
-  --sidebar-ring: #0f766e;
+  --sidebar-accent: #275040;
+  --sidebar-accent-foreground: #eef5ef;
+  --sidebar-border: #275040;
+  --sidebar-ring: #2dd4bf;
 }
 
 .dark {
@@ -85,18 +104,32 @@
   --border: #292524;
   --input: #292524;
   --ring: #2dd4bf;
+  --ledger-ink: #fafaf9;
+  --money: #2dd4bf;
+  --tape-border: #2dd4bf;
+  --lane: #1c1917;
+  --hint-bg: #292524;
+  --hint-border: #44403c;
+  --hint-ink: #e7e5e4;
+  --urgency-track: #94a3b8;
+  --urgency-watch: #f59e0b;
+  --urgency-act: #ef4444;
   --chart-1: #2dd4bf;
   --chart-2: #60a5fa;
   --chart-3: #a78bfa;
   --chart-4: #f59e0b;
   --chart-5: #a8a29e;
-  --sidebar: #1c1917;
-  --sidebar-foreground: #fafaf9;
+  /* Sidebar stays the dark-green rail in both themes. */
+  --sidebar: #18372c;
+  --sidebar-foreground: #eef5ef;
+  --sidebar-nav: #aebfb5;
+  --sidebar-active: #275040;
+  --sidebar-indicator: #e5b94f;
   --sidebar-primary: #2dd4bf;
   --sidebar-primary-foreground: #0c0a09;
-  --sidebar-accent: #292524;
-  --sidebar-accent-foreground: #fafaf9;
-  --sidebar-border: #292524;
+  --sidebar-accent: #275040;
+  --sidebar-accent-foreground: #eef5ef;
+  --sidebar-border: #275040;
   --sidebar-ring: #2dd4bf;
 }
 
@@ -127,12 +160,18 @@
   --color-chart-5: var(--chart-5);
   --color-sidebar: var(--sidebar);
   --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-nav: var(--sidebar-nav);
+  --color-sidebar-active: var(--sidebar-active);
+  --color-sidebar-indicator: var(--sidebar-indicator);
   --color-sidebar-primary: var(--sidebar-primary);
   --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
   --color-sidebar-accent: var(--sidebar-accent);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+  --font-sans: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-display), ui-serif, Georgia, serif;
+  --font-mono: var(--font-mono), ui-monospace, "SF Mono", monospace;
   --radius-lg: var(--radius);
   --radius-md: calc(var(--radius) - 2px);
   --radius-sm: calc(var(--radius) - 4px);
@@ -144,34 +183,472 @@
   }
   body {
     @apply bg-background text-foreground antialiased;
-    font-feature-settings: "cv11", "ss01";
+    font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
   }
-  /* Tabular numerals on every figure so currency/percent/date columns align. */
+  /* Tabular numerals on every figure — currency, percents, dates align. */
   .tnum,
   [data-tnum] {
     font-variant-numeric: tabular-nums;
   }
+  /* Display serif for page titles, brand, chart headings. */
+  .font-display {
+    font-family: var(--font-display), ui-serif, Georgia, serif;
+  }
 }
 
-@layer utilities {
-  /* Drag-and-drop physicality for the kanban board. */
+/* ------------------------------------------------------------------ */
+/* Dealflow ledger components                                          */
+/* ------------------------------------------------------------------ */
+
+@layer components {
+  /* Page titles: Newsreader 600, compact. */
+  .df-page-title {
+    font-family: var(--font-display), ui-serif, Georgia, serif;
+    font-weight: 600;
+    font-size: 29px;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    color: var(--foreground);
+  }
+
+  /* Mono kicker above titles: "TUESDAY · OCTOBER 6, 2026". */
+  .df-kicker {
+    font-family: var(--font-mono), ui-monospace, monospace;
+    font-size: 9px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted-foreground);
+  }
+
+  /* Money figures: IBM Plex Mono, tabular, ledger-teal. */
+  .df-money {
+    font-family: var(--font-mono), ui-monospace, monospace;
+    font-variant-numeric: tabular-nums;
+    color: var(--money);
+  }
+
+  /* KPI stat card: label / mono value / muted note. */
+  .df-kpi {
+    border: 1px solid var(--border);
+    background: var(--card);
+    border-radius: 2px;
+    padding: 14px 16px;
+    min-width: 0;
+  }
+  .df-kpi > span {
+    display: block;
+    font-size: 11px;
+    color: var(--muted-foreground);
+  }
+  .df-kpi > strong {
+    display: block;
+    margin-top: 6px;
+    font-family: var(--font-mono), ui-monospace, monospace;
+    font-weight: 500;
+    font-size: 22px;
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+    color: var(--foreground);
+  }
+  .df-kpi > small {
+    display: block;
+    margin-top: 4px;
+    font-size: 11px;
+    color: var(--muted-foreground);
+  }
+
+  /* Section rule: h4 left, note right, thin rule beneath. */
+  .df-section-rule {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 4px;
+  }
+  .df-section-rule h4 {
+    margin: 0;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+  .df-section-rule span {
+    font-size: 11px;
+    color: var(--muted-foreground);
+  }
+
+  /* Market-tape lane header: name / count / value / win probability. */
+  .df-tape {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 4px;
+    padding: 10px 12px 8px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 8px;
+  }
+  .df-tape strong {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .df-tape .tape-count {
+    font-family: var(--font-mono), ui-monospace, monospace;
+    font-size: 8px;
+    color: var(--muted-foreground);
+  }
+  .df-tape .tape-value {
+    font-family: var(--font-mono), ui-monospace, monospace;
+    font-weight: 500;
+    font-size: 11px;
+    color: var(--money);
+  }
+  .df-tape .tape-prob {
+    font-family: var(--font-mono), ui-monospace, monospace;
+    font-size: 8px;
+    color: var(--muted-foreground);
+    text-align: right;
+  }
+
+  /* Kanban lane: flat, sharp, teal tape-rule on top. */
+  .df-lane {
+    background: var(--lane);
+    border-top: 2px solid var(--tape-border);
+    border-radius: 0;
+  }
+  .df-lane.is-over {
+    box-shadow: inset 0 0 0 2px var(--primary);
+    background: color-mix(in srgb, var(--primary) 7%, var(--lane));
+  }
+
+  /* Deal ticket: company / deal name / money / meta row. */
+  .df-deal {
+    display: block;
+    width: 100%;
+    text-align: left;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    padding: 10px 12px;
+  }
+  .df-deal:hover {
+    border-color: var(--muted-foreground);
+  }
+  .df-deal > strong {
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 1.35;
+  }
+  .df-deal .deal-name {
+    color: var(--muted-foreground);
+    font-size: 11px;
+    margin: 2px 0 10px;
+  }
+  .df-deal .deal-money {
+    font-family: var(--font-mono), ui-monospace, monospace;
+    font-variant-numeric: tabular-nums;
+    color: var(--money);
+    font-size: 12px;
+    font-weight: 500;
+  }
+  .df-deal .deal-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    margin-top: 10px;
+    padding-top: 8px;
+    border-top: 1px solid var(--border);
+  }
+  .df-deal .deal-age {
+    font-family: var(--font-mono), ui-monospace, monospace;
+    font-size: 8px;
+    color: var(--muted-foreground);
+  }
+
+  /* Hint bar under the board topline. */
+  .df-hint {
+    background: var(--hint-bg);
+    border: 1px solid var(--hint-border);
+    color: var(--hint-ink);
+    border-radius: 2px;
+    padding: 8px 12px;
+    font-size: 12px;
+  }
+
+  /* Task ledger rows (Today queue, activities). */
+  .df-task {
+    display: grid;
+    grid-template-columns: 92px minmax(0, 1fr) auto;
+    gap: 12px;
+    align-items: center;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    background: var(--card);
+  }
+  .df-task > time {
+    font-family: var(--font-mono), ui-monospace, monospace;
+    font-size: 9px;
+    color: var(--muted-foreground);
+  }
+  .df-task b {
+    display: block;
+    font-size: 13px;
+    font-weight: 500;
+  }
+  .df-task small {
+    display: block;
+    font-size: 11px;
+    color: var(--muted-foreground);
+  }
+  .df-task.is-overdue {
+    border-left: 2px solid var(--urgency-act);
+  }
+  .df-task.is-overdue > time {
+    color: var(--urgency-act);
+    font-weight: 600;
+  }
+
+  /* Meeting cards (Today rail). */
+  .df-meeting {
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    background: var(--card);
+    padding: 10px 12px;
+  }
+  .df-meeting time {
+    display: block;
+    font-family: var(--font-mono), ui-monospace, monospace;
+    font-size: 9px;
+    color: var(--muted-foreground);
+  }
+  .df-meeting b {
+    display: block;
+    margin-top: 4px;
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .df-meeting small {
+    display: block;
+    margin-top: 2px;
+    font-size: 11px;
+    color: var(--muted-foreground);
+  }
+
+  /* Stakeholder register (deal detail). */
+  .df-stakeholder {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: 10px;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .df-stakeholder:last-child {
+    border-bottom: 0;
+  }
+  .df-stakeholder b {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .df-stakeholder small {
+    display: block;
+    font-size: 11px;
+    color: var(--muted-foreground);
+  }
+  .df-stakeholder em {
+    font-style: normal;
+    font-size: 10px;
+    color: var(--muted-foreground);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  /* Deal fact grid (deal detail rail). */
+  .df-facts {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px 16px;
+    padding: 14px 16px;
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    background: var(--card);
+  }
+  .df-facts span {
+    display: block;
+    font-size: 11px;
+    color: var(--muted-foreground);
+  }
+  .df-facts b {
+    display: block;
+    margin-top: 2px;
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  /* Reconciled chart stat ledger (reports). */
+  .df-chart-ledger {
+    border-top: 2px solid var(--tape-border);
+  }
+  .df-chart-stat {
+    padding: 14px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .df-chart-stat span,
+  .df-chart-stat small {
+    display: block;
+    color: var(--muted-foreground);
+    font-size: 11px;
+    line-height: 1.45;
+  }
+  .df-chart-stat strong {
+    display: block;
+    margin: 5px 0;
+    font-family: var(--font-mono), ui-monospace, monospace;
+    font-weight: 500;
+    font-size: 22px;
+    font-variant-numeric: tabular-nums;
+  }
+  .df-chart-stat small {
+    font-family: var(--font-mono), ui-monospace, monospace;
+  }
+
+  /* Ledger tables (contacts, companies, team, audit, stalled). */
+  .df-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  .df-table thead th {
+    text-align: left;
+    font-family: var(--font-mono), ui-monospace, monospace;
+    font-size: 9px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--muted-foreground);
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  .df-table tbody td {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+  }
+  .df-table tbody tr:last-child td {
+    border-bottom: 0;
+  }
+  .df-table tbody tr:hover td {
+    background: color-mix(in srgb, var(--muted) 55%, transparent);
+  }
+
+  /* Urgency states — text label + semantic color, never color alone. */
+  .df-urgency {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    font-weight: 500;
+  }
+  .df-urgency.track {
+    color: var(--urgency-track);
+  }
+  .df-urgency.watch {
+    color: var(--urgency-watch);
+  }
+  .df-urgency.act {
+    color: var(--urgency-act);
+  }
+
+  /* Recovery / state pages (404, 403, error boundary). */
+  .df-state-content {
+    border-top: 2px solid var(--tape-border);
+    padding-top: 16px;
+    max-width: 560px;
+  }
+  .df-state-content h1 {
+    font-family: var(--font-display), ui-serif, Georgia, serif;
+    font-weight: 600;
+    font-size: 38px;
+    line-height: 1;
+    letter-spacing: -0.02em;
+  }
+  .df-state-action {
+    background: var(--sidebar);
+    border: 1px solid var(--sidebar);
+    color: #fff;
+    border-radius: 2px;
+    min-height: 44px;
+    padding: 0 16px;
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .dark .df-state-action {
+    color: #eef5ef;
+  }
+
+  /* Drag physicality (moved here from the board's injected <style>). */
   .drag-lift {
-    box-shadow:
-      0 20px 25px -5px rgb(0 0 0 / 0.1),
-      0 8px 10px -6px rgb(0 0 0 / 0.1);
+    box-shadow: 0 24px 48px -12px rgb(0 0 0 / 0.28);
     transform: scale(1.02) rotate(1deg);
   }
   .drop-glow {
-    border-color: var(--primary);
-    background-color: var(--primary-subtle);
+    box-shadow: inset 0 0 0 2px var(--primary);
+    background: color-mix(in srgb, var(--primary) 7%, transparent);
+  }
+  @keyframes dealflow-pulse {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.55;
+    }
+  }
+  .remote-pulse {
+    animation: dealflow-pulse 0.8s ease-in-out 2;
   }
 }
 
+@media (max-width: 520px) {
+  .df-task {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .df-task > time {
+    grid-column: 1 / -1;
+    margin-bottom: -4px;
+  }
+}
+
+@layer utilities {
+  /* Realtime prepend flash (600ms fade, spec §5). */
+  @keyframes dealflow-prepend-flash {
+    0% {
+      background-color: var(--primary-subtle);
+    }
+    100% {
+      background-color: transparent;
+    }
+  }
+  .prepend-flash {
+    animation: dealflow-prepend-flash 600ms ease-out;
+  }
+}
+
+/* Motion: 150–200ms ease-out micro-interactions only. */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
   *::after {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
+  }
+  .remote-pulse,
+  .prepend-flash {
+    animation: none !important;
   }
 }
