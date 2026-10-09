@@ -6,9 +6,10 @@ import {
   AvatarImage,
 } from "@/components/ui/avatar";
 
-export type UserAvatarSize = "sm" | "md" | "lg";
+export type UserAvatarSize = "xs" | "sm" | "md" | "lg";
 
 const SIZE_CLASSES: Record<UserAvatarSize, string> = {
+  xs: "h-[25px] w-[25px] text-[9px]",
   sm: "h-7 w-7 text-[10px]",
   md: "h-9 w-9 text-xs",
   lg: "h-11 w-11 text-sm",

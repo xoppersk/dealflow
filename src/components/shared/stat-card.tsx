@@ -1,7 +1,6 @@
 import { TrendingDown, TrendingUp } from "lucide-react";
 
 import { cn } from "@/lib/utils";
-import { Card, CardContent } from "@/components/ui/card";
 
 export type StatCardTone = "default" | "alert";
 
@@ -24,34 +23,32 @@ export function StatCard({
   className,
 }: StatCardProps) {
   return (
-    <Card className={className}>
-      <CardContent className="p-5">
-        <p className="text-sm text-muted-foreground">{label}</p>
-        <div className="mt-1 flex items-baseline gap-2">
-          <p className="tnum text-2xl font-semibold tracking-tight text-foreground">
-            {value}
-          </p>
-          {delta ? (
-            <span
-              className={cn(
-                "tnum inline-flex items-center gap-0.5 text-xs font-medium",
-                tone === "alert" ? "text-destructive" : "text-muted-foreground"
-              )}
-            >
-              {tone === "alert" ? (
-                <TrendingDown className="h-3.5 w-3.5" aria-hidden />
-              ) : (
-                <TrendingUp className="h-3.5 w-3.5" aria-hidden />
-              )}
-              {delta}
-            </span>
-          ) : null}
-        </div>
-        {sparkData && sparkData.length > 1 ? (
-          <Sparkline data={sparkData} />
-        ) : null}
-      </CardContent>
-    </Card>
+    <div className={cn("df-kpi", className)}>
+      <span>{label}</span>
+      <strong
+        style={tone === "alert" ? { color: "var(--urgency-act)" } : undefined}
+      >
+        {value}
+      </strong>
+      {delta ? (
+        <small
+          className={cn(
+            "tnum inline-flex items-center gap-0.5",
+            tone === "alert" ? "text-destructive" : "text-muted-foreground"
+          )}
+        >
+          {tone === "alert" ? (
+            <TrendingDown className="h-3.5 w-3.5" aria-hidden />
+          ) : (
+            <TrendingUp className="h-3.5 w-3.5" aria-hidden />
+          )}
+          {delta}
+        </small>
+      ) : null}
+      {sparkData && sparkData.length > 1 ? (
+        <Sparkline data={sparkData} />
+      ) : null}
+    </div>
   );
 }
 

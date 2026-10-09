@@ -4,6 +4,8 @@ import { cn } from "@/lib/utils";
 
 export interface PageHeaderProps {
   title: string;
+  /** Mono kicker above the title, e.g. "DEALFLOW / DAILY". */
+  kicker?: string;
   description?: string;
   actions?: React.ReactNode;
   className?: string;
@@ -11,6 +13,7 @@ export interface PageHeaderProps {
 
 export function PageHeader({
   title,
+  kicker,
   description,
   actions,
   className,
@@ -18,16 +21,15 @@ export function PageHeader({
   return (
     <div
       className={cn(
-        "flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between",
+        "flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between",
         className
       )}
     >
-      <div className="space-y-1">
-        <h1 className="text-2xl font-semibold tracking-tight text-foreground">
-          {title}
-        </h1>
+      <div className="min-w-0 space-y-1">
+        {kicker ? <p className="df-kicker">{kicker}</p> : null}
+        <h1 className="df-page-title">{title}</h1>
         {description ? (
-          <p className="text-sm text-muted-foreground">{description}</p>
+          <p className="max-w-xl text-sm text-muted-foreground">{description}</p>
         ) : null}
       </div>
       {actions ? (
