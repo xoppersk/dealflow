@@ -66,6 +66,9 @@ export interface AttentionItem {
   contactId?: string | null;
   activityId?: string;
   ownerName?: string;
+  /** Linked deal value, for the task-ledger money column. */
+  dealValue?: number | null;
+  dealCurrency?: string;
 }
 
 export interface RepRollup {
@@ -182,9 +185,9 @@ export async function getDashboardData(): Promise<ActionResult<DashboardData>> {
 
   const overdueDealIds = [...new Set((overdueRows ?? []).map((r) => r.deal_id).filter((id): id is string => id !== null))];
   const { data: overdueDealRows } = overdueDealIds.length > 0
-    ? await supabase.from("deals").select("id,name").in("id", overdueDealIds)
-    : { data: [] as { id: string; name: string }[] };
-  const overdueDealById = new Map((overdueDealRows ?? []).map((d) => [d.id, d.name]));
+    ? await supabase.from("deals").select("id,name,value,currency").in("id", overdueDealIds)
+    : { data: [] as { id: string; name: string; value: number; currency: string }[] };
+  const overdueDealById = new Map((overdueDealRows ?? []).map((d) => [d.id, d]));
 
   const overdueContactIds = [...new Set((overdueRows ?? []).map((r) => r.contact_id).filter((id): id is string => id !== null))];
   const { data: overdueContactRows } = overdueContactIds.length > 0
@@ -203,10 +206,10 @@ export async function getDashboardData(): Promise<ActionResult<DashboardData>> {
   const attention: AttentionItem[] = [];
 
   for (const r of overdueRows ?? []) {
-    const dealName = r.deal_id ? (overdueDealById.get(r.deal_id) ?? null) : null;
+    const deal = r.deal_id ? overdueDealById.get(r.deal_id) : undefined;
     const contact = r.contact_id ? overdueContactById.get(r.contact_id) : undefined;
     const contactName = contact ? fullName(contact.first_name, contact.last_name) : null;
-    const linked = dealName ?? contactName ?? "Untitled";
+    const linked = deal?.name ?? contactName ?? "Untitled";
     const daysOverdue = Math.max(0, wholeDaysBetween(r.due_at ?? nowIso, nowIso));
     attention.push({
       kind: "overdue-activity",
@@ -217,6 +220,8 @@ export async function getDashboardData(): Promise<ActionResult<DashboardData>> {
       dealId: r.deal_id,
       contactId: r.contact_id,
       activityId: r.id,
+      dealValue: deal?.value ?? null,
+      dealCurrency: deal?.currency,
     });
   }
 
@@ -237,6 +242,8 @@ export async function getDashboardData(): Promise<ActionResult<DashboardData>> {
       daysInStage: daysInStage(d.stage_entered_at, now),
       stageName: stage?.name,
       dealId: d.id,
+      dealValue: d.value,
+      dealCurrency: d.currency,
     });
   }
 
