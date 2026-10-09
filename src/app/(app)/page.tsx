@@ -3,18 +3,25 @@ import { Check } from "lucide-react";
 
 import { requireUser } from "@/lib/auth";
 import { getDashboardData } from "@/lib/actions/dashboard";
-import { formatCurrency } from "@/lib/format";
-import { StatCard } from "@/components/shared/stat-card";
+import { formatCompactCurrency, formatCurrency } from "@/lib/format";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Greeting } from "@/components/dashboard/greeting";
 import { AttentionRow } from "@/components/dashboard/attention-row";
 import { ActivityFeed } from "@/components/dashboard/activity-feed";
 
+function todayKicker(): string {
+  return new Date().toLocaleDateString("en-US", {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
 /**
- * Dashboard — the "Today" view (APP-FLOW.md §3 /, UI-DESIGN.md §2.3).
- * Greeting + stat cards + needs-attention list + live recent-activity feed.
- * Managers also get the team rollup section.
+ * Today — the rep's morning desk (flagship-ui-designs, Dealflow / Screens).
+ * Stat ledger, "Due next steps" task queue sorted by urgency, and the live
+ * recent-activity rail. Managers also get the team rollup.
  */
 export default async function DashboardPage() {
   const session = await requireUser();
@@ -22,16 +29,25 @@ export default async function DashboardPage() {
 
   if (!result.ok) {
     return (
-      <div className="mx-auto max-w-3xl px-4 py-16 text-center">
-        <h1 className="text-xl font-semibold">Couldn&apos;t load your dashboard</h1>
-        <p className="mt-2 text-sm text-muted-foreground">{result.error}</p>
+      <div className="mx-auto max-w-3xl px-4 py-16">
+        <div className="df-state-content">
+          <h1>Couldn&apos;t load your dashboard</h1>
+          <p className="mt-3 max-w-sm text-sm text-muted-foreground">
+            {result.error}
+          </p>
+          <div className="mt-6 flex gap-2">
+            <Link href="/" className="df-state-action inline-flex items-center">
+              Try again
+            </Link>
+          </div>
+        </div>
       </div>
     );
   }
 
   const data = result.data;
 
-  // New workspace: hero empty state instead of the dashboard grid.
+  // New workspace: hero empty state instead of the desk.
   if (!data.hasAnyDeals) {
     return (
       <div className="mx-auto flex max-w-xl flex-col items-center px-4 py-16 text-center sm:py-24">
@@ -46,15 +62,15 @@ export default async function DashboardPage() {
           aria-hidden
         >
           <line x1="18" y1="78" x2="78" y2="78" />
-          <rect x="24" y="54" width="12" height="24" rx="2" />
-          <rect x="42" y="42" width="12" height="36" rx="2" />
-          <rect x="60" y="28" width="12" height="50" rx="2" />
+          <rect x="24" y="54" width="12" height="24" />
+          <rect x="42" y="42" width="12" height="36" />
+          <rect x="60" y="28" width="12" height="50" />
           <circle cx="66" cy="20" r="3" className="text-primary" fill="currentColor" stroke="none" />
         </svg>
-        <h2 className="mt-6 text-xl font-semibold">Your pipeline starts here</h2>
+        <h2 className="font-display mt-6 text-2xl font-semibold">Your pipeline starts here</h2>
         <p className="mt-2 max-w-sm text-sm text-muted-foreground">
-          Add your first contact, then create a deal and start logging activity. Your today view
-          will fill in as the pipeline grows.
+          Add your first contact, then create a deal and start logging activity.
+          Your today view will fill in as the pipeline grows.
         </p>
         <div className="mt-6 flex flex-col gap-2 sm:flex-row">
           <Button asChild>
@@ -69,33 +85,63 @@ export default async function DashboardPage() {
   }
 
   const { stats } = data;
+  const stagesWithDeals = stats.dealsByStage.filter((s) => s.count > 0).length;
 
   return (
-    <div className="mx-auto max-w-7xl space-y-8 px-4 py-6 sm:px-6">
-      <Greeting name={data.greetingName} />
-
-      {/* Stat cards */}
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StatCard label="Open pipeline" value={formatCurrency(stats.openPipelineValue, stats.currency)} />
-        <StatCard
-          label="Deals by stage"
-          value={String(stats.openDealsCount)}
-          sparkData={stats.dealsByStage.map((s) => s.count)}
-        />
-        <StatCard
-          label="Overdue follow-ups"
-          value={String(stats.overdueCount)}
-          tone={stats.overdueCount > 0 ? "alert" : "default"}
-        />
-        <StatCard label="Activities this week" value={String(stats.activitiesThisWeek)} />
+    <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p className="df-kicker">{todayKicker()}</p>
+          <h1 className="df-page-title">Today</h1>
+          <p className="mt-1 max-w-xl text-sm text-muted-foreground">
+            Work a focused queue of overdue follow-ups, scheduled activity, and
+            at-risk deals.
+          </p>
+        </div>
+        <Button asChild className="h-11 shrink-0">
+          <Link href="/activities?create=1">Log activity</Link>
+        </Button>
       </div>
 
-      {/* Attention + recent activity */}
-      <div className="grid gap-6 lg:grid-cols-3">
-        <section className="lg:col-span-2" aria-label="Needs attention">
-          <h2 className="mb-3 text-base font-semibold">Needs attention</h2>
+      {/* Stat ledger */}
+      <div className="mt-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <div className="df-kpi">
+          <span>Open pipeline</span>
+          <strong>{formatCompactCurrency(stats.openPipelineValue, stats.currency)}</strong>
+          <small>
+            {stats.openDealsCount} {stats.openDealsCount === 1 ? "deal" : "deals"}
+          </small>
+        </div>
+        <div className="df-kpi">
+          <span>Overdue follow-ups</span>
+          <strong style={stats.overdueCount > 0 ? { color: "var(--urgency-act)" } : undefined}>
+            {stats.overdueCount}
+          </strong>
+          <small>{stats.overdueCount > 0 ? "Needs action" : "All clear"}</small>
+        </div>
+        <div className="df-kpi">
+          <span>Open deals</span>
+          <strong>{stats.openDealsCount}</strong>
+          <small>
+            Across {stagesWithDeals} {stagesWithDeals === 1 ? "stage" : "stages"}
+          </small>
+        </div>
+        <div className="df-kpi">
+          <span>Activities this week</span>
+          <strong>{stats.activitiesThisWeek}</strong>
+          <small>Last 7 days</small>
+        </div>
+      </div>
+
+      {/* Morning grid: due-next-steps ledger + recent activity rail */}
+      <div className="mt-8 grid gap-6 lg:grid-cols-3">
+        <section className="lg:col-span-2" aria-label="Due next steps">
+          <div className="df-section-rule">
+            <h4>Due next steps</h4>
+            <span>Sorted by urgency</span>
+          </div>
           {data.needsAttention.length === 0 ? (
-            <div className="flex items-center gap-3 rounded-lg border border-border bg-card px-4 py-6">
+            <div className="mt-2 flex items-center gap-3 border border-border bg-card px-4 py-6">
               <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
                 <Check className="h-5 w-5" aria-hidden />
               </span>
@@ -105,7 +151,7 @@ export default async function DashboardPage() {
               </div>
             </div>
           ) : (
-            <div className="space-y-2">
+            <div className="mt-2 grid gap-2">
               {data.needsAttention.map((item) => (
                 <AttentionRow key={`${item.kind}-${item.id}`} item={item} />
               ))}
@@ -113,71 +159,79 @@ export default async function DashboardPage() {
           )}
         </section>
 
-        <section aria-label="Recent activity">
-          <h2 className="mb-3 text-base font-semibold">Recent activity</h2>
-          <Card>
-            <CardContent className="px-4 py-1">
-              <ActivityFeed
-                initial={data.recentActivity}
-                currentUserId={session.id}
-                currentUserName={session.profile.full_name}
-              />
-            </CardContent>
-          </Card>
-        </section>
+        <aside aria-label="Recent activity">
+          <div className="df-section-rule">
+            <h4>Recent activity</h4>
+            <span>Live</span>
+          </div>
+          <div className="mt-2 border border-border bg-card px-4">
+            <ActivityFeed
+              initial={data.recentActivity}
+              currentUserId={session.id}
+              currentUserName={session.profile.full_name}
+            />
+          </div>
+        </aside>
       </div>
 
       {/* Manager variant: team rollup */}
       {data.isManager && data.team && (
-        <section aria-label="Team" className="space-y-4 border-t border-border pt-6">
-          <h2 className="text-base font-semibold">Team</h2>
-          <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-            <StatCard
-              label="Team pipeline"
-              value={formatCurrency(data.team.teamPipelineValue, data.team.currency)}
-            />
+        <section aria-label="Team" className="mt-10 border-t-2 border-[var(--tape-border)] pt-6">
+          <div className="df-section-rule">
+            <h4>Team</h4>
+            <span>Pipeline rollup</span>
+          </div>
+          <div className="mt-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
+            <div className="df-kpi">
+              <span>Team pipeline</span>
+              <strong>
+                {formatCompactCurrency(data.team.teamPipelineValue, data.team.currency)}
+              </strong>
+              <small>All open deals</small>
+            </div>
           </div>
 
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base">Per rep</CardTitle>
-            </CardHeader>
-            <CardContent className="px-0 py-0">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-border text-left text-xs text-muted-foreground">
-                    <th className="px-4 py-2 font-medium">Rep</th>
-                    <th className="px-4 py-2 text-right font-medium tabular-nums">Open deals</th>
-                    <th className="px-4 py-2 text-right font-medium tabular-nums">Pipeline</th>
-                    <th className="px-4 py-2 text-right font-medium tabular-nums">Overdue</th>
+          <div className="mt-4 border border-border bg-card">
+            <table className="df-table">
+              <thead>
+                <tr>
+                  <th>Rep</th>
+                  <th className="text-right">Open deals</th>
+                  <th className="text-right">Pipeline</th>
+                  <th className="text-right">Overdue</th>
+                </tr>
+              </thead>
+              <tbody>
+                {data.team.perRep.map((rep) => (
+                  <tr key={rep.userId}>
+                    <td className="font-medium">{rep.name}</td>
+                    <td className="df-money text-right">{rep.openDeals}</td>
+                    <td className="df-money text-right">
+                      {formatCurrency(rep.pipelineValue, data.team?.currency ?? "USD")}
+                    </td>
+                    <td
+                      className={`tnum text-right ${
+                        rep.overdue > 0 ? "font-semibold text-[var(--urgency-act)]" : "text-muted-foreground"
+                      }`}
+                    >
+                      {rep.overdue}
+                    </td>
                   </tr>
-                </thead>
-                <tbody>
-                  {data.team.perRep.map((rep) => (
-                    <tr key={rep.userId} className="border-b border-border last:border-0">
-                      <td className="px-4 py-2.5 font-medium">{rep.name}</td>
-                      <td className="px-4 py-2.5 text-right tabular-nums">{rep.openDeals}</td>
-                      <td className="px-4 py-2.5 text-right tabular-nums">
-                        {formatCurrency(rep.pipelineValue, data.team?.currency ?? "USD")}
-                      </td>
-                      <td
-                        className={`px-4 py-2.5 text-right tabular-nums ${rep.overdue > 0 ? "font-semibold text-destructive" : "text-muted-foreground"}`}
-                      >
-                        {rep.overdue}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </CardContent>
-          </Card>
+                ))}
+              </tbody>
+            </table>
+          </div>
 
-          <div>
-            <h3 className="mb-3 text-sm font-semibold">Stalled across the team</h3>
+          <div className="mt-6">
+            <div className="df-section-rule">
+              <h4>Stalled across the team</h4>
+            </div>
             {data.team.stalledDeals.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No stalled deals. The team is on it.</p>
+              <p className="mt-2 text-sm text-muted-foreground">
+                No stalled deals. The team is on it.
+              </p>
             ) : (
-              <div className="space-y-2">
+              <div className="mt-2 grid gap-2">
                 {data.team.stalledDeals.map((item) => (
                   <AttentionRow key={`team-${item.id}`} item={item} />
                 ))}
