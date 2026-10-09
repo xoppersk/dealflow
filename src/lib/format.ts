@@ -66,6 +66,18 @@ export function formatShortDate(date: string | Date): string {
   return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
+/** "8:45 AM" (task-ledger time cell) */
+export function formatTimeOfDay(date: string | Date): string {
+  const d = date instanceof Date ? date : new Date(date);
+  return d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+}
+
+/** "October 8" (due-date labels: "Due October 8", "Overdue · Oct 5" uses short) */
+export function formatLongDate(date: string | Date): string {
+  const d = date instanceof Date ? date : new Date(date);
+  return d.toLocaleDateString("en-US", { month: "long", day: "numeric" });
+}
+
 /** Whole days a deal has sat in its current stage. */
 export function daysInStage(stageEnteredAt: string | Date, now: Date = new Date()): number {
   const entered = stageEnteredAt instanceof Date ? stageEnteredAt : new Date(stageEnteredAt);

@@ -39,6 +39,10 @@ export interface DealCardData {
   stageEnteredAt: string;
   lastTouchedAt: string;
   boardPosition: number;
+  /** Hero next-step line on the ticket (signature: Bracken Works). */
+  nextStepTitle: string | null;
+  /** Preformatted due label, e.g. "due October 8". */
+  nextStepDue: string | null;
 }
 
 export interface StageColumnData {
