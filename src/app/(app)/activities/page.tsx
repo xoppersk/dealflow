@@ -47,7 +47,8 @@ export default async function ActivitiesPage({
       <div className="mb-6">
         <PageHeader
           title="Activities"
-          description="Follow-up discipline — the queue that keeps deals from going cold."
+          kicker="Dealflow / Daily"
+          description="Capture calls, notes, tasks, and meetings in one chronological sales record."
         />
       </div>
       <ActivitiesView
