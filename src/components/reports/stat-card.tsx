@@ -18,14 +18,20 @@ export function StatCard({
   label: string;
   value: string;
   hint?: string;
-  variant?: "default" | "alert";
+  variant?: "default" | "alert" | "money";
   href?: string;
 }) {
   const body = (
     <div className={`df-kpi${href ? " transition-colors hover:border-primary/40" : ""}`}>
       <span>{label}</span>
       <strong
-        style={variant === "alert" ? { color: "var(--urgency-act)" } : undefined}
+        style={
+          variant === "alert"
+            ? { color: "var(--urgency-act)" }
+            : variant === "money"
+              ? { color: "var(--money)" }
+              : undefined
+        }
       >
         {value}
       </strong>

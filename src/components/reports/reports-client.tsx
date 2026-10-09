@@ -4,14 +4,13 @@ import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Toaster, toast } from "sonner";
 
-import { formatCompactCurrency, formatCurrency } from "@/lib/format";
 import { getReportsData, type ReportsData } from "@/lib/actions/reports";
 
-import { ForecastChart, Leaderboard, StageBarChart, WinRateTrend } from "./charts";
 import { ReportFilterBar, type ReportFilters } from "./filter-bar";
 import { EmptyState, PageHeader } from "./page-header";
-import { StalledTable, downloadCsv } from "./stalled-table";
-import { StatCard, StatCardSkeleton } from "./stat-card";
+import { ReportsBody } from "./reports-body";
+import { downloadCsv } from "./stalled-table";
+import { StatCardSkeleton } from "./stat-card";
 
 function defaultRange(): ReportFilters {
   const to = new Date();
@@ -125,96 +124,7 @@ export function ReportsClient() {
       )}
 
       {!loading && !failed && data && (
-        <div className="flex flex-col gap-6">
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <StatCard
-              label="Total open value"
-              value={formatCurrency(data.kpis.totalOpenValue, data.currency)}
-              hint={`${data.kpis.openDealCount} open deals`}
-              href={boardHref}
-            />
-            <StatCard
-              label="Weighted forecast"
-              value={formatCurrency(data.kpis.weightedForecast, data.currency)}
-              hint="Value × effective probability"
-              href={boardHref}
-            />
-            <StatCard
-              label="Win rate · 90 days"
-              value={`${data.kpis.winRate90d}%`}
-              hint={`${data.kpis.won90d} won · ${data.kpis.lost90d} lost`}
-            />
-            <StatCard
-              label="Activities logged"
-              value={String(data.kpis.activitiesInRange)}
-              hint="In selected range"
-              href="/activities"
-            />
-          </div>
-
-          {data.kpis.openDealCount === 0 && data.leaderboard.length === 0 ? (
-            <EmptyState
-              title="Not enough data for this period"
-              description="Try widening the date range, or add deals and log activities to see trends."
-            />
-          ) : (
-            <>
-              <div className="grid gap-6 lg:grid-cols-2">
-                <StageBarChart
-                  data={data.pipelineByStage}
-                  currency={data.currency}
-                  onBarClick={() => router.push(boardHref)}
-                />
-                <ForecastChart
-                  data={data.forecastByMonth}
-                  currency={data.currency}
-                  onExport={exportForecast}
-                />
-                <WinRateTrend data={data.winRateTrend} />
-                <Leaderboard data={data.leaderboard} onExport={exportLeaderboard} />
-              </div>
-
-              {/* Calculation notes — definitions beside every metric. */}
-              <section aria-label="Calculation notes">
-                <div className="df-section-rule">
-                  <h4>Calculation notes</h4>
-                  <span>Same records, visible definitions</span>
-                </div>
-                <div className="mt-2 border border-border bg-card px-4">
-                  <div className="flex items-baseline gap-4 border-b border-border py-3">
-                    <span className="df-money text-sm">{data.kpis.winRate90d}%</span>
-                    <p className="min-w-0 flex-1">
-                      <b className="block text-sm font-semibold">Win rate</b>
-                      <small className="block text-xs text-muted-foreground">
-                        Won deals divided by all closed-won and closed-lost
-                        deals. Open deals are excluded.
-                      </small>
-                    </p>
-                    <time className="tnum shrink-0 text-xs text-muted-foreground">
-                      {data.kpis.won90d} won ÷ {data.kpis.won90d + data.kpis.lost90d} closed
-                    </time>
-                  </div>
-                  <div className="flex items-baseline gap-4 border-b border-border py-3">
-                    <span className="df-money text-sm">Σ</span>
-                    <p className="min-w-0 flex-1">
-                      <b className="block text-sm font-semibold">Open value reconciliation</b>
-                      <small className="block text-xs text-muted-foreground">
-                        {data.pipelineByStage
-                          .map((s) => formatCompactCurrency(s.value, data.currency))
-                          .join(" + ")}
-                      </small>
-                    </p>
-                    <time className="df-money shrink-0 text-sm">
-                      {formatCompactCurrency(data.kpis.totalOpenValue, data.currency)}
-                    </time>
-                  </div>
-                </div>
-              </section>
-
-              <StalledTable deals={data.stalled} thresholdDays={data.staleThresholdDays} />
-            </>
-          )}
-        </div>
+        <ReportsBody data={data} boardHref={boardHref} onBarClick={() => router.push(boardHref)} onExportForecast={exportForecast} onExportLeaderboard={exportLeaderboard} />
       )}
     </div>
   );
