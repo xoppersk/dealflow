@@ -38,6 +38,9 @@ export interface StageBucket {
   stageName: string;
   color: string;
   value: number;
+  /** Approximation of the stage total one full range earlier (same set of
+      deals, evaluated against their created_at/closed_at; values are current). */
+  previousValue: number;
   count: number;
   dealIds: string[];
 }
@@ -92,10 +95,27 @@ export interface ReportsKpis {
   totalOpenValue: number;
   openDealCount: number;
   weightedForecast: number;
+  /** Open value one full range earlier (approximation; see StageBucket). */
+  previousOpenValue: number;
   winRate90d: number;
   won90d: number;
   lost90d: number;
+  /** Average close-cycle days across won deals in range (null when none). */
+  averageCycleDays: number | null;
+  wonCycleCount: number;
+  wonCycleTotalDays: number;
   activitiesInRange: number;
+}
+
+/** Highest-value open deal, for the "Bracken Works" calculation note. */
+export interface TopDealNote {
+  companyName: string;
+  stageName: string;
+  daysInStage: number;
+  nextStepTitle: string | null;
+  nextStepDue: string | null;
+  value: number;
+  currency: string;
 }
 
 export interface ReportsData {
@@ -105,6 +125,7 @@ export interface ReportsData {
   winRateTrend: WinRateWeek[];
   leaderboard: LeaderboardRow[];
   stalled: StalledDeal[];
+  topDeal: TopDealNote | null;
   /** Active team members for the rep filter. */
   team: { id: string; name: string }[];
   staleThresholdDays: number;
@@ -183,7 +204,7 @@ export async function getReportsData(input: ReportsInput): Promise<ActionResult<
   let dealQuery = supabase
     .from("deals")
     .select(
-      "id, name, value, currency, probability, close_date, owner_id, stage_id, stage_entered_at, last_touched_at, closed_at, company_id",
+      "id, name, value, currency, probability, close_date, owner_id, stage_id, stage_entered_at, last_touched_at, closed_at, company_id, created_at",
     );
   if (ownerId) dealQuery = dealQuery.eq("owner_id", ownerId);
   const { data: deals, error: dealsError } = await dealQuery;
@@ -191,6 +212,14 @@ export async function getReportsData(input: ReportsInput): Promise<ActionResult<
 
   const openDeals = deals.filter((d) => !d.closed_at);
   const closedDeals = deals.filter((d) => d.closed_at);
+
+  // --- Previous-period approximation -----------------------------------------
+  // The deals table keeps no value history, so "last period" is derived from
+  // the same rows: a deal counted as open at prevTo when it was created on or
+  // before prevTo and not yet closed. Current values are used throughout.
+  const prevToIso = new Date(new Date(`${from}T00:00:00Z`).getTime()).toISOString();
+  const openAtPrevTo = (d: (typeof deals)[number]) =>
+    d.created_at <= prevToIso && (d.closed_at == null || d.closed_at > prevToIso);
 
   // --- Pipeline value by stage (open deals only) ---
   const pipelineByStage: StageBucket[] = stages.map((stage) => {
@@ -200,10 +229,58 @@ export async function getReportsData(input: ReportsInput): Promise<ActionResult<
       stageName: stage.name,
       color: stage.color,
       value: inStage.reduce((sum, d) => sum + Math.max(0, d.value), 0),
+      previousValue: openDeals
+        .filter((d) => d.stage_id === stage.id && openAtPrevTo(d))
+        .reduce((sum, d) => sum + Math.max(0, d.value), 0),
       count: inStage.length,
       dealIds: inStage.map((d) => d.id),
     };
   });
+  const previousOpenValue = pipelineByStage.reduce((sum, s) => sum + s.previousValue, 0);
+
+  // --- Average close-cycle length (won deals in range) ------------------------
+  const rangeStart = new Date(`${from}T00:00:00Z`).getTime();
+  const rangeEnd = new Date(`${to}T23:59:59Z`).getTime();
+  const wonInRange = closedDeals.filter((d) => {
+    if (!d.closed_at) return false;
+    const closedAt = new Date(d.closed_at).getTime();
+    if (closedAt < rangeStart || closedAt > rangeEnd) return false;
+    return stageById.get(d.stage_id)?.is_closed_won === true;
+  });
+  const wonCycleTotalDays = wonInRange.reduce(
+    (sum, d) =>
+      sum + Math.max(0, Math.round((new Date(d.closed_at as string).getTime() - new Date(d.created_at).getTime()) / 86_400_000)),
+    0,
+  );
+  const wonCycleCount = wonInRange.length;
+  const averageCycleDays =
+    wonCycleCount > 0 ? Math.round(wonCycleTotalDays / wonCycleCount) : null;
+
+  // --- Top open deal (the "Bracken Works" calculation note) --------------------
+  const topOpen = [...openDeals].sort((a, b) => Number(b.value) - Number(a.value))[0];
+  let topDeal: TopDealNote | null = null;
+  if (topOpen) {
+    const { data: nextStep } = await supabase
+      .from("activities")
+      .select("subject, due_at")
+      .eq("deal_id", topOpen.id)
+      .eq("is_follow_up", true)
+      .is("completed_at", null)
+      .not("due_at", "is", null)
+      .order("due_at", { ascending: true })
+      .limit(1)
+      .maybeSingle();
+    const company = topOpen.company_id ? companyById.get(topOpen.company_id) : undefined;
+    topDeal = {
+      companyName: company?.name ?? topOpen.name,
+      stageName: stageById.get(topOpen.stage_id)?.name ?? "Unknown",
+      daysInStage: wholeDaysBetween(topOpen.stage_entered_at, now),
+      nextStepTitle: nextStep?.subject ?? null,
+      nextStepDue: nextStep?.due_at ?? null,
+      value: Number(topOpen.value),
+      currency: topOpen.currency,
+    };
+  }
 
   // --- Forecast by close month (domain math; deal ids per bucket) ---
   const idsByMonth = new Map<string, string[]>();
@@ -340,9 +417,13 @@ export async function getReportsData(input: ReportsInput): Promise<ActionResult<
         totalOpenValue: openDeals.reduce((sum, d) => sum + Math.max(0, d.value), 0),
         openDealCount: openDeals.length,
         weightedForecast: forecastTotal(forecastDeals),
+        previousOpenValue,
         winRate90d: Math.round(winRate(won90d, lost90d) * 1000) / 10,
         won90d,
         lost90d,
+        averageCycleDays,
+        wonCycleCount,
+        wonCycleTotalDays,
         activitiesInRange: activities.length,
       },
       pipelineByStage,
@@ -350,6 +431,7 @@ export async function getReportsData(input: ReportsInput): Promise<ActionResult<
       winRateTrend,
       leaderboard,
       stalled,
+      topDeal,
       team: users
         .filter((u) => u.is_active)
         .map((u) => ({ id: u.id, name: u.full_name })),
