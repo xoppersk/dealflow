@@ -368,6 +368,31 @@
     color: var(--muted-foreground);
   }
 
+  /* Card owner avatar (artifact): neutral ledger-grey initials circle. */
+  .df-deal .card-avatar {
+    width: 25px;
+    height: 25px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    background: #454a50;
+    color: #f4f4f2;
+    font-size: 9px;
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+
+  /* Hero next-step line on a deal ticket (signature: Bracken Works).
+     Artifact: teal, ruled above, sits between the value and the meta row. */
+  .df-deal .hero-next {
+    margin: 8px 0 0;
+    padding-top: 7px;
+    border-top: 1px solid var(--border);
+    font-size: 11px;
+    line-height: 1.45;
+    color: var(--money);
+  }
+
   /* Hint bar under the board topline. */
   .df-hint {
     background: var(--hint-bg);
@@ -423,7 +448,8 @@
     display: block;
     font-family: var(--font-mono), ui-monospace, monospace;
     font-size: 9px;
-    color: var(--muted-foreground);
+    font-weight: 500;
+    color: var(--money);
   }
   .df-meeting b {
     display: block;
@@ -461,22 +487,26 @@
     color: var(--muted-foreground);
   }
   .df-stakeholder em {
+    font-family: var(--font-mono), ui-monospace, monospace;
     font-style: normal;
-    font-size: 10px;
+    font-size: 9px;
     color: var(--muted-foreground);
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
   }
 
-  /* Deal fact grid (deal detail rail). */
+  /* Deal fact grid (deal detail rail). Artifact: ruled rows, mono values,
+     2px ledger rule on top. */
   .df-facts {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px 16px;
-    padding: 14px 16px;
-    border: 1px solid var(--border);
-    border-radius: 2px;
+    margin-top: 16px;
+    border-top: 2px solid var(--sidebar);
     background: var(--card);
+  }
+  .df-facts > div {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 12px;
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border);
   }
   .df-facts span {
     display: block;
@@ -485,9 +515,124 @@
   }
   .df-facts b {
     display: block;
-    margin-top: 2px;
+    font-family: var(--font-mono), ui-monospace, monospace;
+    font-weight: 500;
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+  }
+
+  /* Deal detail ledger header (artifact .deal-detail-head): kicker / 34px
+     Newsreader title / sub-line, ticket-value box right, 2px ledger rule. */
+  .df-deal-head {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 24px;
+    align-items: end;
+    padding-bottom: 18px;
+    border-bottom: 2px solid var(--sidebar);
+  }
+  .df-deal-head h3 {
+    font-family: var(--font-display), ui-serif, Georgia, serif;
+    font-weight: 600;
+    font-size: 34px;
+    line-height: 1;
+    letter-spacing: -0.045em;
+    margin: 5px 0 8px;
+    color: var(--foreground);
+  }
+  .df-deal-head .deal-sub {
+    margin: 0;
+    color: var(--muted-foreground);
+    font-size: 13px;
+  }
+  .df-ticket-value {
+    text-align: right;
+  }
+  .df-ticket-value span,
+  .df-ticket-value small {
+    display: block;
+    color: var(--muted-foreground);
+    font-family: var(--font-mono), ui-monospace, monospace;
+    font-size: 11px;
+  }
+  .df-ticket-value strong {
+    display: block;
+    margin: 5px 0;
+    font-family: var(--font-mono), ui-monospace, monospace;
+    font-weight: 500;
+    font-size: 26px;
+    font-variant-numeric: tabular-nums;
+    color: var(--foreground);
+  }
+  .df-ticket-value small {
+    color: var(--urgency-watch);
+  }
+
+  /* Next-step card (artifact .deal-next-step). */
+  .df-next-step {
+    border: 1px solid var(--border);
+    background: color-mix(in srgb, var(--primary) 4%, var(--card));
+    padding: 18px;
+  }
+  .df-next-step > span {
+    font-family: var(--font-mono), ui-monospace, monospace;
+    font-size: 11px;
+    color: var(--money);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .df-next-step h4 {
+    font-family: var(--font-display), ui-serif, Georgia, serif;
+    font-weight: 600;
+    font-size: 20px;
+    line-height: 1.15;
+    margin: 8px 0;
+  }
+  .df-next-step p {
+    font-size: 13px;
+    line-height: 1.55;
+    color: var(--muted-foreground);
+    margin: 0 0 14px;
+  }
+
+  /* Activity timeline (artifact .deal-timeline): mono time / subject+body /
+     actor initials. */
+  .df-timeline article {
+    display: grid;
+    grid-template-columns: 116px minmax(0, 1fr) 24px;
+    gap: 12px;
+    padding: 13px 0;
+    border-top: 1px solid var(--border);
+  }
+  .df-timeline article:first-of-type {
+    margin-top: 10px;
+  }
+  .df-timeline time {
+    color: var(--muted-foreground);
+    font-family: var(--font-mono), ui-monospace, monospace;
+    font-size: 11px;
+    font-variant-numeric: tabular-nums;
+  }
+  .df-timeline b {
     font-size: 13px;
     font-weight: 600;
+  }
+  .df-timeline p {
+    margin: 4px 0 0;
+    color: var(--muted-foreground);
+    font-size: 12px;
+    line-height: 1.5;
+  }
+  .df-timeline .timeline-actor {
+    display: grid;
+    place-items: center;
+    width: 24px;
+    height: 24px;
+    border: 1px solid var(--border);
+    font-family: var(--font-mono), ui-monospace, monospace;
+    font-size: 9px;
+    color: var(--muted-foreground);
   }
 
   /* Reconciled chart stat ledger (reports). */
