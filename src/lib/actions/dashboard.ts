@@ -5,7 +5,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { getCurrentUser, isManagerOrAdmin } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/types";
-import { daysInStage, formatShortDate, fullName } from "@/lib/format";
+import { daysInStage, fullName } from "@/lib/format";
 import { isStaleDeal, wholeDaysBetween, DEFAULT_STALE_THRESHOLD_DAYS } from "@/lib/domain/stale-deals";
 import type { ActionResult, TimelineEntry } from "@/lib/types";
 
@@ -55,10 +55,13 @@ export interface StageCount {
 }
 
 export interface AttentionItem {
-  kind: "overdue-activity" | "stalled-deal";
+  kind: "overdue-activity" | "scheduled-activity" | "stalled-deal";
   id: string;
   title: string;
+  /** Artifact ledger anatomy: the company / account the task belongs to. */
   context: string;
+  /** ISO due date for activity rows (drives the time cell). */
+  dueAt?: string | null;
   daysOverdue?: number;
   daysInStage?: number;
   stageName?: string;
@@ -69,6 +72,15 @@ export interface AttentionItem {
   /** Linked deal value, for the task-ledger money column. */
   dealValue?: number | null;
   dealCurrency?: string;
+}
+
+/** One meeting on today's rail (artifact "Today's meetings"). */
+export interface MeetingItem {
+  id: string;
+  startsAt: string;
+  title: string;
+  detail: string;
+  dealId: string | null;
 }
 
 export interface RepRollup {
@@ -92,6 +104,14 @@ export interface DashboardStats {
   currency: string;
   dealsByStage: StageCount[];
   overdueCount: number;
+  /** Overdue + scheduled for today (artifact "Due today"). */
+  dueTodayCount: number;
+  /** Sum of distinct deal values across the due-next-steps ledger. */
+  valueInMotion: number;
+  valueInMotionDeals: number;
+  meetingsCount: number;
+  /** ISO start of the next meeting today, for the "Next at …" note. */
+  nextMeetingAt: string | null;
   activitiesThisWeek: number;
 }
 
@@ -101,6 +121,7 @@ export interface DashboardData {
   hasAnyDeals: boolean;
   stats: DashboardStats;
   needsAttention: AttentionItem[];
+  meetingsToday: MeetingItem[];
   recentActivity: TimelineEntry[];
   team?: TeamRollup;
 }
@@ -175,25 +196,84 @@ export async function getDashboardData(): Promise<ActionResult<DashboardData>> {
   // ---- Overdue follow-ups (mine) -------------------------------------------
   const { data: overdueRows } = await supabase
     .from("activities")
-    .select("id,type,subject,due_at,deal_id,contact_id")
+    .select("id,type,subject,body,due_at,deal_id,contact_id")
     .eq("owner_id", session.id)
     .eq("is_follow_up", true)
     .lt("due_at", nowIso)
     .is("completed_at", null)
     .order("due_at", { ascending: true })
-    .limit(6);
+    .limit(12);
 
-  const overdueDealIds = [...new Set((overdueRows ?? []).map((r) => r.deal_id).filter((id): id is string => id !== null))];
-  const { data: overdueDealRows } = overdueDealIds.length > 0
-    ? await supabase.from("deals").select("id,name,value,currency").in("id", overdueDealIds)
-    : { data: [] as { id: string; name: string; value: number; currency: string }[] };
-  const overdueDealById = new Map((overdueDealRows ?? []).map((d) => [d.id, d]));
+  // ---- Scheduled follow-ups (mine): today and upcoming ----------------------
+  const { data: scheduledRows } = await supabase
+    .from("activities")
+    .select("id,type,subject,body,due_at,deal_id,contact_id")
+    .eq("owner_id", session.id)
+    .eq("is_follow_up", true)
+    .gte("due_at", nowIso)
+    .is("completed_at", null)
+    .order("due_at", { ascending: true })
+    .limit(12);
 
-  const overdueContactIds = [...new Set((overdueRows ?? []).map((r) => r.contact_id).filter((id): id is string => id !== null))];
-  const { data: overdueContactRows } = overdueContactIds.length > 0
-    ? await supabase.from("contacts").select("id,first_name,last_name").in("id", overdueContactIds)
+  // ---- Today's meetings (mine) ----------------------------------------------
+  const startOfToday = new Date(now);
+  startOfToday.setUTCHours(0, 0, 0, 0);
+  const endOfToday = new Date(startOfToday.getTime() + 24 * 60 * 60 * 1000);
+  const { data: meetingRows } = await supabase
+    .from("activities")
+    .select("id,subject,body,due_at,occurred_at,deal_id,contact_id")
+    .eq("owner_id", session.id)
+    .eq("type", "meeting")
+    .is("completed_at", null)
+    .gte("due_at", startOfToday.toISOString())
+    .lt("due_at", endOfToday.toISOString())
+    .order("due_at", { ascending: true })
+    .limit(10);
+
+  const linkedDealIds = [
+    ...new Set(
+      [...(overdueRows ?? []), ...(scheduledRows ?? []), ...(meetingRows ?? [])]
+        .map((r) => r.deal_id)
+        .filter((id): id is string => id !== null),
+    ),
+  ];
+  const { data: linkedDealRows } = linkedDealIds.length > 0
+    ? await supabase.from("deals").select("id,name,value,currency,company_id").in("id", linkedDealIds)
+    : { data: [] as { id: string; name: string; value: number; currency: string; company_id: string | null }[] };
+  const linkedDealById = new Map((linkedDealRows ?? []).map((d) => [d.id, d]));
+
+  const linkedContactIds = [
+    ...new Set(
+      [...(overdueRows ?? []), ...(scheduledRows ?? []), ...(meetingRows ?? [])]
+        .map((r) => r.contact_id)
+        .filter((id): id is string => id !== null),
+    ),
+  ];
+  const { data: linkedContactRows } = linkedContactIds.length > 0
+    ? await supabase.from("contacts").select("id,first_name,last_name").in("id", linkedContactIds)
     : { data: [] as { id: string; first_name: string; last_name: string }[] };
-  const overdueContactById = new Map((overdueContactRows ?? []).map((c) => [c.id, c]));
+  const linkedContactById = new Map((linkedContactRows ?? []).map((c) => [c.id, c]));
+
+  const linkedCompanyIds = [
+    ...new Set(
+      (linkedDealRows ?? []).map((d) => d.company_id).filter((id): id is string => id !== null),
+    ),
+  ];
+  const { data: linkedCompanyRows } = linkedCompanyIds.length > 0
+    ? await supabase.from("companies").select("id,name").in("id", linkedCompanyIds)
+    : { data: [] as { id: string; name: string }[] };
+  const linkedCompanyById = new Map((linkedCompanyRows ?? []).map((c) => [c.id, c.name]));
+
+  /** Artifact ledger: the small line under the task is the account name. */
+  function accountLabel(dealId: string | null, contactId: string | null): string {
+    const deal = dealId ? linkedDealById.get(dealId) : undefined;
+    if (deal) {
+      const company = deal.company_id ? linkedCompanyById.get(deal.company_id) : undefined;
+      return company ?? deal.name;
+    }
+    const contact = contactId ? linkedContactById.get(contactId) : undefined;
+    return contact ? fullName(contact.first_name, contact.last_name) : "Untitled";
+  }
 
   // ---- Activities this week (mine) -----------------------------------------
   const { count: activitiesThisWeek } = await supabase
@@ -202,21 +282,35 @@ export async function getDashboardData(): Promise<ActionResult<DashboardData>> {
     .eq("owner_id", session.id)
     .gte("occurred_at", weekAgoIso);
 
-  // ---- Needs attention ------------------------------------------------------
+  // ---- Needs attention: overdue → scheduled → stalled -------------------------
   const attention: AttentionItem[] = [];
 
   for (const r of overdueRows ?? []) {
-    const deal = r.deal_id ? overdueDealById.get(r.deal_id) : undefined;
-    const contact = r.contact_id ? overdueContactById.get(r.contact_id) : undefined;
-    const contactName = contact ? fullName(contact.first_name, contact.last_name) : null;
-    const linked = deal?.name ?? contactName ?? "Untitled";
+    const deal = r.deal_id ? linkedDealById.get(r.deal_id) : undefined;
     const daysOverdue = Math.max(0, wholeDaysBetween(r.due_at ?? nowIso, nowIso));
     attention.push({
       kind: "overdue-activity",
       id: r.id,
-      title: r.subject || `Follow up — ${linked}`,
-      context: `${linked} · due ${formatShortDate(r.due_at ?? nowIso)}`,
+      title: r.subject || "Follow up",
+      context: accountLabel(r.deal_id, r.contact_id),
+      dueAt: r.due_at,
       daysOverdue,
+      dealId: r.deal_id,
+      contactId: r.contact_id,
+      activityId: r.id,
+      dealValue: deal?.value ?? null,
+      dealCurrency: deal?.currency,
+    });
+  }
+
+  for (const r of scheduledRows ?? []) {
+    const deal = r.deal_id ? linkedDealById.get(r.deal_id) : undefined;
+    attention.push({
+      kind: "scheduled-activity",
+      id: r.id,
+      title: r.subject || "Follow up",
+      context: accountLabel(r.deal_id, r.contact_id),
+      dueAt: r.due_at,
       dealId: r.deal_id,
       contactId: r.contact_id,
       activityId: r.id,
@@ -246,6 +340,40 @@ export async function getDashboardData(): Promise<ActionResult<DashboardData>> {
       dealCurrency: d.currency,
     });
   }
+
+  // ---- Today's meetings ------------------------------------------------------
+  const meetingsToday: MeetingItem[] = (meetingRows ?? []).map((r) => {
+    const contact = r.contact_id ? linkedContactById.get(r.contact_id) : undefined;
+    const contactName = contact ? fullName(contact.first_name, contact.last_name) : null;
+    const deal = r.deal_id ? linkedDealById.get(r.deal_id) : undefined;
+    const detail = [contactName, deal?.name].filter(Boolean).join(" · ") || "Scheduled";
+    return {
+      id: r.id,
+      startsAt: r.due_at ?? r.occurred_at,
+      title: r.subject || "Meeting",
+      detail,
+      dealId: r.deal_id,
+    };
+  });
+
+  // ---- KPI inputs ------------------------------------------------------------
+  const taskItems = attention.filter(
+    (a) => a.kind === "overdue-activity" || a.kind === "scheduled-activity",
+  );
+  const dueTodayCount =
+    taskItems.filter(
+      (a) =>
+        a.kind === "overdue-activity" ||
+        (a.dueAt != null && new Date(a.dueAt) < endOfToday),
+    ).length;
+  const motionDealIds = new Set(
+    taskItems.map((a) => a.dealId).filter((id): id is string => id !== null),
+  );
+  const valueInMotion = [...motionDealIds].reduce(
+    (sum, id) => sum + Number(linkedDealById.get(id)?.value ?? 0),
+    0,
+  );
+  const nextMeetingAt = meetingsToday.length > 0 ? meetingsToday[0]!.startsAt : null;
 
   // ---- Recent activity (latest 10, RLS-filtered) ----------------------------
   const { data: recentRows } = await supabase
@@ -368,9 +496,15 @@ export async function getDashboardData(): Promise<ActionResult<DashboardData>> {
         currency,
         dealsByStage,
         overdueCount: overdueCount ?? 0,
+        dueTodayCount,
+        valueInMotion,
+        valueInMotionDeals: motionDealIds.size,
+        meetingsCount: meetingsToday.length,
+        nextMeetingAt,
         activitiesThisWeek: activitiesThisWeek ?? 0,
       },
       needsAttention: attention,
+      meetingsToday,
       recentActivity,
       team,
     },

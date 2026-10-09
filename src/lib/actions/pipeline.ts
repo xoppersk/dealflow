@@ -112,8 +112,10 @@ function toDealCard(
   owners: Map<string, OwnerInfo>,
   companies: Map<string, string>,
   stages: Map<string, PipelineStageRow>,
+  nextSteps: Map<string, { title: string; due: string }>,
 ): DealCardData {
   const owner = owners.get(row.owner_id);
+  const next = nextSteps.get(row.id);
   return {
     id: row.id,
     name: row.name,
@@ -134,7 +136,54 @@ function toDealCard(
     stageEnteredAt: row.stage_entered_at,
     lastTouchedAt: row.last_touched_at,
     boardPosition: row.board_position,
+    nextStepTitle: next?.title ?? null,
+    nextStepDue: next?.due ?? null,
   };
+}
+
+/** "due October 8" / "overdue October 5" label for a follow-up due date. */
+function nextStepDueLabel(dueAt: string, now: Date = new Date()): string {
+  const due = new Date(dueAt);
+  const label = due.toLocaleDateString("en-US", {
+    month: "long",
+    day: "numeric",
+  });
+  const overdue =
+    due.getTime() < new Date(now.toDateString()).getTime();
+  return `${overdue ? "overdue" : "due"} ${label}`;
+}
+
+/**
+ * Next open follow-up per deal (nearest due date first): the hero next-step
+ * line on board tickets and the Today ledger's next-step card.
+ */
+async function nextStepsForDeals(
+  supabase: Db,
+  dealIds: string[],
+): Promise<Map<string, { title: string; due: string }>> {
+  const map = new Map<string, { title: string; due: string }>();
+  if (dealIds.length === 0) return map;
+  const { data, error } = await supabase
+    .from("activities")
+    .select("deal_id, subject, due_at")
+    .in("deal_id", dealIds)
+    .eq("is_follow_up", true)
+    .is("completed_at", null)
+    .not("due_at", "is", null)
+    .order("due_at", { ascending: true })
+    .limit(500);
+  if (error) {
+    console.error("[pipeline] next-step lookup failed", error);
+    return map;
+  }
+  for (const r of data ?? []) {
+    if (!r.deal_id || map.has(r.deal_id) || !r.due_at) continue;
+    map.set(r.deal_id, {
+      title: r.subject ?? "Follow up",
+      due: nextStepDueLabel(r.due_at),
+    });
+  }
+  return map;
 }
 
 /** Single-row variant of the display joins (conflict + reopen paths). */
@@ -167,7 +216,9 @@ async function toDealCardWithLookups(
     if (company) companies.set(company.id, company.name);
   }
 
-  return toDealCard(row, owners, companies, stageMap);
+  const nextSteps = await nextStepsForDeals(supabase, [row.id]);
+
+  return toDealCard(row, owners, companies, stageMap, nextSteps);
 }
 
 /** Next board_position for a card landing at the end of a column. */
@@ -248,11 +299,18 @@ export async function getBoardData(): Promise<ActionResult<BoardData>> {
       for (const c of data ?? []) companies.set(c.id, c.name);
     }
 
+    const nextSteps = await nextStepsForDeals(
+      supabase,
+      dealRows.map((d) => d.id),
+    );
+
     return {
       ok: true,
       data: {
         stages: stageRows.map(toStageColumn),
-        deals: dealRows.map((d) => toDealCard(d, owners, companies, stageMap)),
+        deals: dealRows.map((d) =>
+          toDealCard(d, owners, companies, stageMap, nextSteps),
+        ),
         totalCount: countRes.count ?? dealRows.length,
       },
     };
