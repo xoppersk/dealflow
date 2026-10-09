@@ -93,7 +93,8 @@ export function WorkspaceForm({
       <Toaster position="bottom-right" />
       <PageHeader
         title="Workspace settings"
-        description="Defaults for the whole workspace. Changes apply immediately."
+        kicker="Dealflow / Management"
+        description="Configure stages, members, imports, defaults, and workspace governance."
       />
       <Card>
         <CardHeader>
