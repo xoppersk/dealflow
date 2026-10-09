@@ -123,12 +123,12 @@ function LoginForm() {
     <main className="flex min-h-dvh flex-col items-center justify-center bg-gradient-to-b from-muted/60 to-background px-4 py-12">
       <div className="mb-8 flex flex-col items-center gap-2 text-center">
         <BrandMark size={44} />
-        <p className="mt-1 text-lg text-muted-foreground">Sell in the open.</p>
+        <p className="font-display mt-1 text-lg text-muted-foreground">Sell in the open.</p>
       </div>
 
-      <Card className="w-full max-w-[400px]">
+      <Card className="w-full max-w-[400px] rounded-[2px] border-border shadow-none">
         <CardHeader>
-          <h1 className="text-xl font-semibold tracking-tight">Sign in</h1>
+          <h1 className="font-display text-xl font-semibold tracking-tight">Sign in</h1>
         </CardHeader>
         <CardContent>
           {mode === "magic-sent" ? (
