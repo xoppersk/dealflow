@@ -136,7 +136,7 @@ export function LogOutcomeDialog({ activityId, open, onOpenChange, onDone }: Log
             />
           </div>
 
-          <div className="rounded-lg border border-border p-4">
+          <div className="rounded-[2px] border border-border p-4">
             <div className="flex items-center justify-between gap-3">
               <div>
                 <Label htmlFor="outcome-next" className="text-sm font-medium">

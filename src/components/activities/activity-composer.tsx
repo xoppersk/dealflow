@@ -157,7 +157,7 @@ export function ActivityComposer({
                 onClick={() => setType(t.value)}
                 aria-pressed={selected}
                 className={cn(
-                  "flex flex-col items-center gap-1.5 rounded-lg border px-2 py-3 text-xs font-medium transition-colors",
+                  "flex flex-col items-center gap-1.5 rounded-[2px] border px-2 py-3 text-xs font-medium transition-colors",
                   selected
                     ? "border-primary bg-primary/5 text-primary"
                     : "border-border text-muted-foreground hover:border-primary/40 hover:text-foreground",
@@ -204,7 +204,7 @@ export function ActivityComposer({
         />
       </div>
 
-      <div className="rounded-lg border border-border p-4">
+      <div className="rounded-[2px] border border-border p-4">
         <div className="flex items-center justify-between gap-3">
           <div>
             <Label htmlFor="activity-followup" className="text-sm font-medium">

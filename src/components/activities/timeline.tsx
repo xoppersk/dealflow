@@ -125,7 +125,7 @@ export function Timeline({ entries }: { entries: TimelineEntry[] }) {
                 >
                   <TypeIcon type={entry.kind} />
                 </span>
-                <div className="min-w-0 flex-1 rounded-lg border border-border bg-card p-3">
+                <div className="min-w-0 flex-1 rounded-[2px] border border-border bg-card p-3">
                   <div className="flex items-center gap-2 text-sm">
                     <Badge variant="secondary" className="shrink-0">
                       {kindLabel(entry.kind)}

@@ -133,7 +133,7 @@ export function ActivitiesView({
       <div
         role="tablist"
         aria-label="Activity views"
-        className="inline-flex items-center gap-1 rounded-lg border border-border bg-muted/50 p-1"
+        className="inline-flex items-center gap-1 rounded-[2px] border border-border bg-muted/50 p-1"
       >
         {VIEW_TABS.map((tab) => {
           const count = counts[tab.value];
@@ -146,7 +146,7 @@ export function ActivitiesView({
               type="button"
               onClick={() => setView(tab.value)}
               className={cn(
-                "flex cursor-pointer items-center gap-2 rounded-md px-4 py-1.5 text-sm font-medium transition-colors",
+                "flex cursor-pointer items-center gap-2 rounded-[2px] px-4 py-1.5 text-sm font-medium transition-colors",
                 active ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground",
               )}
             >
@@ -167,7 +167,7 @@ export function ActivitiesView({
       {loading ? (
         <div className="space-y-3">
           {[0, 1, 2].map((i) => (
-            <Skeleton key={i} className="h-32 rounded-lg" />
+            <Skeleton key={i} className="h-32 rounded-[2px]" />
           ))}
         </div>
       ) : items.length === 0 ? (
@@ -176,10 +176,10 @@ export function ActivitiesView({
         <div className="space-y-6">
           {grouped.map(([label, groupItems]) => (
             <section key={label} aria-label={label}>
-              <h2 className="mb-2 text-xs font-semibold tracking-wide text-muted-foreground uppercase">
-                {label}
-              </h2>
-              <div className="space-y-3">
+              <div className="df-section-rule">
+                <h4>{label}</h4>
+              </div>
+              <div className="mt-2 grid gap-2">
                 {groupItems.map((item) => (
                   <ActivityCard
                     key={item.id}
@@ -194,7 +194,7 @@ export function ActivitiesView({
           ))}
         </div>
       ) : (
-        <div className="space-y-3">
+        <div className="grid gap-2">
           {items.map((item) => (
             <ActivityCard
               key={item.id}
@@ -240,18 +240,18 @@ export function ActivitiesView({
 function EmptyQueue({ view }: { view: View }) {
   if (view === "overdue") {
     return (
-      <div className="flex flex-col items-center gap-3 rounded-lg border border-border bg-card px-6 py-16 text-center">
+      <div className="flex flex-col items-center gap-3 rounded-[2px] border border-border bg-card px-6 py-16 text-center">
         <span className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-primary">
           <CheckCircle2 className="h-7 w-7" aria-hidden />
         </span>
         <h2 className="text-lg font-semibold">You&apos;re all caught up</h2>
-        <p className="max-w-sm text-sm text-muted-foreground">Nothing is overdue. Nice work.</p>
+        <p className="max-w-sm text-sm text-muted-foreground">Nothing is overdue.</p>
       </div>
     );
   }
   if (view === "upcoming") {
     return (
-      <div className="flex flex-col items-center gap-3 rounded-lg border border-border bg-card px-6 py-16 text-center">
+      <div className="flex flex-col items-center gap-3 rounded-[2px] border border-border bg-card px-6 py-16 text-center">
         <span className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-primary">
           <CheckCircle2 className="h-7 w-7" aria-hidden />
         </span>
@@ -263,7 +263,7 @@ function EmptyQueue({ view }: { view: View }) {
     );
   }
   return (
-    <div className="flex flex-col items-center gap-3 rounded-lg border border-border bg-card px-6 py-16 text-center">
+    <div className="flex flex-col items-center gap-3 rounded-[2px] border border-border bg-card px-6 py-16 text-center">
       <h2 className="text-lg font-semibold">No activities yet</h2>
       <p className="max-w-sm text-sm text-muted-foreground">
         Log one from any deal or contact — calls, emails, meetings, and notes all land here.
