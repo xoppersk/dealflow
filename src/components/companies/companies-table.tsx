@@ -84,7 +84,8 @@ export function CompaniesTable({ currentUserId }: CompaniesTableProps) {
     <div className="flex flex-col gap-4">
       <PageHeader
         title="Companies"
-        description="Your accounts, ranked by open pipeline."
+        kicker="Dealflow / Records"
+        description="View account context, associated contacts, open pipeline, and relationship history."
         actions={
           <Button onClick={() => setDialogOpen(true)}>
             <Plus className="h-4 w-4" />
@@ -103,7 +104,7 @@ export function CompaniesTable({ currentUserId }: CompaniesTableProps) {
         />
       </div>
 
-      <div className="hidden rounded-lg border md:block">
+      <div className="hidden rounded-[2px] border md:block">
         <Table>
           <TableHeader>
             <TableRow>
@@ -196,7 +197,7 @@ export function CompaniesTable({ currentUserId }: CompaniesTableProps) {
           />
         ) : (
           items.map((c) => (
-            <Link key={c.id} href={`/companies/${c.id}`} className="flex items-center gap-3 rounded-lg border bg-card p-3">
+            <Link key={c.id} href={`/companies/${c.id}`} className="flex items-center gap-3 rounded-[2px] border bg-card p-3">
               <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground">
                 <Building2 className="h-5 w-5" />
               </span>

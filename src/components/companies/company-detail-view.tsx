@@ -111,7 +111,7 @@ export function CompanyDetailView({ data, currentUserId }: CompanyDetailViewProp
             <Building2 className="h-7 w-7" />
           </span>
           <div className="min-w-0 flex-1">
-            <h1 className="text-2xl font-semibold tracking-tight">{company.name}</h1>
+            <h1 className="df-page-title">{company.name}</h1>
             <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
               {company.industry && <span>{company.industry}</span>}
               {company.size && <span>{company.size} people</span>}
@@ -175,7 +175,7 @@ export function CompanyDetailView({ data, currentUserId }: CompanyDetailViewProp
                 <li key={d.id}>
                   <Link
                     href={`/deals/${d.id}`}
-                    className="flex items-center gap-3 rounded-lg border bg-card p-3 hover:bg-accent/50"
+                    className="flex items-center gap-3 rounded-[2px] border bg-card p-3 hover:bg-accent/50"
                   >
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-sm font-medium">{d.name}</p>
@@ -216,7 +216,7 @@ export function CompanyDetailView({ data, currentUserId }: CompanyDetailViewProp
                 <li key={c.id}>
                   <Link
                     href={`/contacts/${c.id}`}
-                    className="flex items-center gap-3 rounded-lg border bg-card p-3 hover:bg-accent/50"
+                    className="flex items-center gap-3 rounded-[2px] border bg-card p-3 hover:bg-accent/50"
                   >
                     <UserAvatar userId={c.id} name={fullName(c.first_name, c.last_name)} />
                     <div className="min-w-0 flex-1">
