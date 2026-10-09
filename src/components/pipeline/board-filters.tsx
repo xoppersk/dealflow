@@ -111,11 +111,11 @@ export function BoardFilters({ owners }: BoardFiltersProps) {
             })
           }
         >
-          <SelectTrigger id="board-owner" className="w-44">
-            <SelectValue placeholder="All owners" />
+          <SelectTrigger id="board-owner" className="h-11 w-44">
+            <SelectValue placeholder="Owner: All" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All owners</SelectItem>
+            <SelectItem value="all">Owner: All</SelectItem>
             {owners.map((o) => (
               <SelectItem key={o.id} value={o.id}>
                 {o.name}
@@ -132,7 +132,7 @@ export function BoardFilters({ owners }: BoardFiltersProps) {
           placeholder="Search deals or companies"
           value={query}
           onChange={(e) => handleQueryChange(e.target.value)}
-          className="w-56"
+          className="h-11 w-56"
         />
       </div>
 
@@ -150,7 +150,7 @@ export function BoardFilters({ owners }: BoardFiltersProps) {
             })
           }
         >
-          <SelectTrigger id="board-value" className="w-40">
+          <SelectTrigger id="board-value" className="h-11 w-40">
             <SelectValue placeholder="All values" />
           </SelectTrigger>
           <SelectContent>

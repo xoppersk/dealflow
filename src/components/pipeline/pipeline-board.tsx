@@ -618,7 +618,7 @@ export function PipelineBoard({
         <div>
           <p className="df-kicker">Dealflow / Daily</p>
           <h1 className="df-page-title">Pipeline</h1>
-          <p className="df-money mt-1 text-xs">
+          <p className="tnum mt-1 font-mono text-[9px] text-muted-foreground">
             {formatCompactCurrency(openValue, deals[0]?.currency ?? "USD")} open ·{" "}
             {deals.length} {deals.length === 1 ? "deal" : "deals"} shown
           </p>
@@ -639,8 +639,8 @@ export function PipelineBoard({
       </div>
 
       <p className="df-hint" role="note">
-        Realtime conflicts are resolved without silent data loss — every
-        teammate&apos;s board converges on the same stage.
+        Select a deal, then select a column to move it. Realtime conflicts are
+        resolved without silent data loss.
       </p>
 
       <BoardFilters owners={owners} />

@@ -5,8 +5,7 @@ import { useRouter } from "next/navigation";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 
-import { UserAvatar } from "@/components/shared/user-avatar";
-import { daysInStage, formatCompactCurrency } from "@/lib/format";
+import { daysInStage, formatCompactCurrency, initials } from "@/lib/format";
 import type { DealCardData } from "@/lib/types";
 
 interface DealCardProps {
@@ -30,16 +29,18 @@ function CardBody({ deal }: { deal: DealCardData }) {
       <span className="deal-money">
         {formatCompactCurrency(deal.value, deal.currency)}
       </span>
+      {deal.nextStepTitle && deal.nextStepDue && (
+        <p className="hero-next">
+          {deal.nextStepTitle} · {deal.nextStepDue}
+        </p>
+      )}
       <div className="deal-meta">
         <span className="deal-age">
           {daysInStage(deal.stageEnteredAt)}d in stage
         </span>
-        <UserAvatar
-          userId={deal.ownerId}
-          name={deal.ownerName}
-          avatarUrl={deal.ownerAvatarUrl}
-          size="xs"
-        />
+        <span className="card-avatar" title={deal.ownerName}>
+          {initials(deal.ownerName)}
+        </span>
       </div>
     </>
   );
