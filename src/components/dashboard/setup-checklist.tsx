@@ -34,7 +34,7 @@ export function SetupChecklist({ items }: { items: SetupChecklistItem[] }) {
             key={item.id}
             href={item.href}
             className={cn(
-              "flex items-center gap-3 rounded-lg px-2 py-2 transition-colors hover:bg-muted/60",
+              "flex items-center gap-3 rounded-[2px] px-2 py-2 transition-colors hover:bg-muted/60",
               item.done && "opacity-60",
             )}
           >

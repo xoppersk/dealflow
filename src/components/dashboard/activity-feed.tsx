@@ -107,8 +107,8 @@ export function ActivityFeed({
         <li
           key={entry.id}
           className={cn(
-            "flex items-start gap-3 py-3 transition-colors duration-700",
-            freshIds.has(entry.id) && "bg-primary/5",
+            "flex items-start gap-3 py-3",
+            freshIds.has(entry.id) && "prepend-flash",
           )}
         >
           <UserAvatar userId="" name={entry.actorName} avatarUrl={entry.actorAvatarUrl} size="sm" />
