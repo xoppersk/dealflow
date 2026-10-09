@@ -3,11 +3,10 @@ import { Check } from "lucide-react";
 
 import { requireUser } from "@/lib/auth";
 import { getDashboardData } from "@/lib/actions/dashboard";
-import { formatCompactCurrency, formatCurrency } from "@/lib/format";
+import { formatCompactCurrency, formatCurrency, formatTimeOfDay } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { Greeting } from "@/components/dashboard/greeting";
 import { AttentionRow } from "@/components/dashboard/attention-row";
-import { ActivityFeed } from "@/components/dashboard/activity-feed";
 
 function todayKicker(): string {
   return new Date().toLocaleDateString("en-US", {
@@ -24,7 +23,7 @@ function todayKicker(): string {
  * recent-activity rail. Managers also get the team rollup.
  */
 export default async function DashboardPage() {
-  const session = await requireUser();
+  await requireUser();
   const result = await getDashboardData();
 
   if (!result.ok) {
@@ -85,7 +84,6 @@ export default async function DashboardPage() {
   }
 
   const { stats } = data;
-  const stagesWithDeals = stats.dealsByStage.filter((s) => s.count > 0).length;
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6">
@@ -94,8 +92,8 @@ export default async function DashboardPage() {
           <p className="df-kicker">{todayKicker()}</p>
           <h1 className="df-page-title">Today</h1>
           <p className="mt-1 max-w-xl text-sm text-muted-foreground">
-            Work a focused queue of overdue follow-ups, scheduled activity, and
-            at-risk deals.
+            A rep&apos;s morning desk, ordered by urgency: clear overdue work
+            first, then move through today&apos;s next steps and meetings.
           </p>
         </div>
         <Button asChild className="h-11 shrink-0">
@@ -103,37 +101,44 @@ export default async function DashboardPage() {
         </Button>
       </div>
 
-      {/* Stat ledger */}
+      {/* Stat ledger (flagship-ui-designs, Dealflow / Screens — Today) */}
       <div className="mt-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
         <div className="df-kpi">
+          <span>Due today</span>
+          <strong>{stats.dueTodayCount}</strong>
+          <small>{stats.overdueCount} overdue</small>
+        </div>
+        <div className="df-kpi">
+          <span>Value in motion</span>
+          <strong style={{ color: "var(--money)" }}>
+            {formatCompactCurrency(stats.valueInMotion, stats.currency)}
+          </strong>
+          <small>
+            Across {stats.valueInMotionDeals}{" "}
+            {stats.valueInMotionDeals === 1 ? "deal" : "deals"}
+          </small>
+        </div>
+        <div className="df-kpi">
+          <span>Meetings</span>
+          <strong>{stats.meetingsCount}</strong>
+          <small>
+            {stats.nextMeetingAt
+              ? `Next at ${formatTimeOfDay(stats.nextMeetingAt)}`
+              : "None today"}
+          </small>
+        </div>
+        <div className="df-kpi">
           <span>Open pipeline</span>
-          <strong>{formatCompactCurrency(stats.openPipelineValue, stats.currency)}</strong>
+          <strong style={{ color: "var(--money)" }}>
+            {formatCompactCurrency(stats.openPipelineValue, stats.currency)}
+          </strong>
           <small>
             {stats.openDealsCount} {stats.openDealsCount === 1 ? "deal" : "deals"}
           </small>
         </div>
-        <div className="df-kpi">
-          <span>Overdue follow-ups</span>
-          <strong style={stats.overdueCount > 0 ? { color: "var(--urgency-act)" } : undefined}>
-            {stats.overdueCount}
-          </strong>
-          <small>{stats.overdueCount > 0 ? "Needs action" : "All clear"}</small>
-        </div>
-        <div className="df-kpi">
-          <span>Open deals</span>
-          <strong>{stats.openDealsCount}</strong>
-          <small>
-            Across {stagesWithDeals} {stagesWithDeals === 1 ? "stage" : "stages"}
-          </small>
-        </div>
-        <div className="df-kpi">
-          <span>Activities this week</span>
-          <strong>{stats.activitiesThisWeek}</strong>
-          <small>Last 7 days</small>
-        </div>
       </div>
 
-      {/* Morning grid: due-next-steps ledger + recent activity rail */}
+      {/* Morning grid: due-next-steps ledger + today's meetings rail */}
       <div className="mt-8 grid gap-6 lg:grid-cols-3">
         <section className="lg:col-span-2" aria-label="Due next steps">
           <div className="df-section-rule">
@@ -159,17 +164,25 @@ export default async function DashboardPage() {
           )}
         </section>
 
-        <aside aria-label="Recent activity">
+        <aside aria-label="Today's meetings">
           <div className="df-section-rule">
-            <h4>Recent activity</h4>
-            <span>Live</span>
+            <h4>Today&apos;s meetings</h4>
+            <span>{data.meetingsToday.length} scheduled</span>
           </div>
-          <div className="mt-2 border border-border bg-card px-4">
-            <ActivityFeed
-              initial={data.recentActivity}
-              currentUserId={session.id}
-              currentUserName={session.profile.full_name}
-            />
+          <div className="mt-2">
+            {data.meetingsToday.length === 0 ? (
+              <p className="mt-2 text-sm text-muted-foreground">
+                No meetings on the calendar today.
+              </p>
+            ) : (
+              data.meetingsToday.map((m) => (
+                <article key={m.id} className="df-meeting">
+                  <time>{formatTimeOfDay(m.startsAt)}</time>
+                  <b>{m.title}</b>
+                  <small>{m.detail}</small>
+                </article>
+              ))
+            )}
           </div>
         </aside>
       </div>
