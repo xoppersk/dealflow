@@ -28,10 +28,13 @@ import {
 import { CloseDealDialog } from "@/components/pipeline/close-deal-dialog";
 import { DealCard } from "@/components/pipeline/deal-card";
 import { StageColumn } from "@/components/pipeline/stage-column";
+import { Plus } from "lucide-react";
+
 import { EmptyState } from "@/components/shared/empty-state";
-import { PageHeader } from "@/components/shared/page-header";
 import { PresenceStack } from "@/components/shared/presence-stack";
+import { NewDealDialog } from "@/components/deals/new-deal-dialog";
 import { Button } from "@/components/ui/button";
+import { formatCompactCurrency } from "@/lib/format";
 import {
   getBoardData,
   moveDeal,
@@ -51,27 +54,6 @@ import {
 } from "@/lib/realtime/channels";
 import type { DealCardData, StageColumnData } from "@/lib/types";
 import type { PipelineStageRow } from "@/lib/supabase/types";
-
-const DRAG_STYLES = `
-.drag-lift {
-  box-shadow: 0 24px 48px -12px rgb(0 0 0 / 0.28);
-  transform: scale(1.02) rotate(1deg);
-}
-.drop-glow {
-  box-shadow: inset 0 0 0 2px var(--primary);
-  background: color-mix(in srgb, var(--primary) 7%, transparent);
-}
-@keyframes dealflow-pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.55; }
-}
-.remote-pulse {
-  animation: dealflow-pulse 0.8s ease-in-out 2;
-}
-@media (prefers-reduced-motion: reduce) {
-  .remote-pulse { animation: none; }
-}
-`;
 
 /** Adapter for the shared domain rule (only id/closed flags are read). */
 function asRow(stage: StageColumnData): PipelineStageRow {
@@ -123,6 +105,10 @@ export function PipelineBoard({
     toStageId: string;
   } | null>(null);
   const [pulsingIds, setPulsingIds] = useState<ReadonlySet<string>>(new Set());
+  // ?create=1 opens the New deal dialog on load (⌘K / ＋ New menu).
+  const [createOpen, setCreateOpen] = useState(
+    () => searchParams.get("create") === "1",
+  );
 
   // Refs so the realtime handler (captured once) always sees fresh state.
   const dealsRef = useRef(deals);
@@ -624,25 +610,45 @@ export function PipelineBoard({
       ? stages.find((s) => s.id === closeDialog.toStageId)
       : undefined;
 
+  const openValue = deals.reduce((sum, d) => sum + d.value, 0);
+
   return (
     <div className="flex h-full flex-col gap-4 p-4 md:p-6">
-      <style>{DRAG_STYLES}</style>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p className="df-kicker">Dealflow / Daily</p>
+          <h1 className="df-page-title">Pipeline</h1>
+          <p className="df-money mt-1 text-xs">
+            {formatCompactCurrency(openValue, deals[0]?.currency ?? "USD")} open ·{" "}
+            {deals.length} {deals.length === 1 ? "deal" : "deals"} shown
+          </p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            See every opportunity by stage, value, owner, age, and next action.
+          </p>
+        </div>
+        <div className="flex shrink-0 items-center gap-2">
+          <PresenceStack users={viewingNow} />
+          <Button
+            onClick={() => setCreateOpen(true)}
+            className="h-11 min-w-11"
+          >
+            <Plus className="h-4 w-4" />
+            <span className="hidden sm:inline">New deal</span>
+          </Button>
+        </div>
+      </div>
 
-      <PageHeader
-        title="Pipeline"
-        description="Drag deals between stages. Changes sync live for the whole team."
-        actions={<PresenceStack users={viewingNow} />}
-      />
+      <p className="df-hint" role="note">
+        Realtime conflicts are resolved without silent data loss — every
+        teammate&apos;s board converges on the same stage.
+      </p>
 
       <BoardFilters owners={owners} />
 
       {totalCount > deals.length && (
-        <p
-          role="status"
-          className="rounded-lg border bg-muted/60 px-3 py-2 text-xs text-muted-foreground"
-        >
-          Showing {deals.length} of {totalCount.toLocaleString()} deals —
-          refine filters to see more.
+        <p role="status" className="df-hint">
+          Showing {deals.length} of {totalCount.toLocaleString()} — refine
+          filters to see more.
         </p>
       )}
 
@@ -670,7 +676,7 @@ export function PipelineBoard({
           }
         />
       ) : (
-        <div className="flex flex-1 gap-4 overflow-x-auto pb-4">
+        <div className="flex flex-1 gap-2 overflow-x-auto pb-4">
           <DndContext
             sensors={sensors}
             collisionDetection={closestCenter}
@@ -716,6 +722,20 @@ export function PipelineBoard({
           }}
         />
       )}
+
+      <NewDealDialog
+        open={createOpen}
+        onOpenChange={setCreateOpen}
+        currentUserId={user.id}
+        onCreated={async () => {
+          const result = await getBoardData();
+          if (result.ok) {
+            setStages(result.data.stages);
+            setDeals(result.data.deals);
+            setTotalCount(result.data.totalCount);
+          }
+        }}
+      />
     </div>
   );
 }

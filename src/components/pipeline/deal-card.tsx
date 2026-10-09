@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 
-import { DaysInStageBadge } from "@/components/shared/days-in-stage-badge";
 import { UserAvatar } from "@/components/shared/user-avatar";
 import { daysInStage, formatCompactCurrency } from "@/lib/format";
 import type { DealCardData } from "@/lib/types";
@@ -18,31 +17,29 @@ interface DealCardProps {
   overlay?: boolean;
 }
 
-const CARD_CLASSES =
-  "block w-full rounded-lg border bg-card p-3 text-left shadow-sm transition-shadow hover:shadow-md";
-
+/**
+ * Deal ticket (approved anatomy): company · deal name · compact mono value ·
+ * "Nd in stage" mono age · owner avatar. Sharp 2px corners, no shadow —
+ * a ledger ticket, not a card.
+ */
 function CardBody({ deal }: { deal: DealCardData }) {
   return (
     <>
-      <h3 className="text-sm font-medium leading-snug">{deal.name}</h3>
-      {deal.companyName && (
-        <p className="mt-0.5 truncate text-xs text-muted-foreground">
-          {deal.companyName}
-        </p>
-      )}
-      <div className="mt-2 flex items-center justify-between gap-2">
-        <span className="tnum text-sm font-semibold">
-          {formatCompactCurrency(deal.value, deal.currency)}
+      <strong>{deal.companyName ?? deal.name}</strong>
+      {deal.companyName && <div className="deal-name">{deal.name}</div>}
+      <span className="deal-money">
+        {formatCompactCurrency(deal.value, deal.currency)}
+      </span>
+      <div className="deal-meta">
+        <span className="deal-age">
+          {daysInStage(deal.stageEnteredAt)}d in stage
         </span>
         <UserAvatar
           userId={deal.ownerId}
           name={deal.ownerName}
           avatarUrl={deal.ownerAvatarUrl}
-          size="sm"
+          size="xs"
         />
-      </div>
-      <div className="mt-2">
-        <DaysInStageBadge days={daysInStage(deal.stageEnteredAt)} />
       </div>
     </>
   );
@@ -50,7 +47,7 @@ function CardBody({ deal }: { deal: DealCardData }) {
 
 function DealCardOverlay({ deal }: { deal: DealCardData }) {
   return (
-    <article className={`${CARD_CLASSES} drag-lift cursor-grabbing`}>
+    <article className="df-deal drag-lift cursor-grabbing">
       <CardBody deal={deal} />
     </article>
   );
@@ -103,7 +100,7 @@ function SortableDealCard({
         }
         router.push(`/deals/${deal.id}`);
       }}
-      className={`${CARD_CLASSES} cursor-grab active:cursor-grabbing ${
+      className={`df-deal cursor-grab active:cursor-grabbing ${
         isDragging ? "opacity-40" : ""
       } ${pulse ? "remote-pulse" : ""}`}
       aria-label={`${deal.name}, ${formatCompactCurrency(deal.value, deal.currency)}`}
@@ -114,8 +111,8 @@ function SortableDealCard({
 }
 
 /**
- * Kanban card: name, company, compact value, owner avatar, days-in-stage
- * badge. Draggable via dnd-kit sortable; click navigates to the deal.
+ * Kanban deal ticket. Draggable via dnd-kit sortable; click navigates to
+ * the deal.
  */
 export function DealCard({ deal, pulse = false, overlay = false }: DealCardProps) {
   if (overlay) return <DealCardOverlay deal={deal} />;

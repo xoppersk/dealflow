@@ -17,10 +17,14 @@ interface StageColumnProps {
   pulsingDealIds?: ReadonlySet<string>;
 }
 
+function paddedCount(n: number): string {
+  return n < 10 ? `0${n}` : String(n);
+}
+
 /**
- * One kanban column: header (color dot, name, count, column total) + card
- * stack + empty placeholder. The whole column is a drop target; cards are a
- * per-column SortableContext.
+ * One kanban lane: market-tape header (stage name · deal count · column
+ * total · win probability) over a flat ticket stack. The whole lane is a
+ * drop target; cards are a per-lane SortableContext.
  */
 export function StageColumn({ stage, deals, pulsingDealIds }: StageColumnProps) {
   const { setNodeRef, isOver } = useDroppable({
@@ -34,26 +38,22 @@ export function StageColumn({ stage, deals, pulsingDealIds }: StageColumnProps) 
     <section
       ref={setNodeRef}
       aria-label={`${stage.name} column`}
-      className={`flex w-72 shrink-0 flex-col rounded-xl border bg-muted/40 transition-shadow ${
-        isOver ? "drop-glow" : ""
+      className={`df-lane flex w-72 shrink-0 flex-col pb-2 transition-colors md:w-80 ${
+        isOver ? "is-over" : ""
       }`}
     >
-      <header className="flex items-center gap-2 px-3 pt-3">
-        <span
-          className="h-2.5 w-2.5 shrink-0 rounded-full"
-          style={{ backgroundColor: stage.color }}
-          aria-hidden="true"
-        />
-        <h2 className="truncate text-sm font-semibold">{stage.name}</h2>
-        <span className="tnum text-xs text-muted-foreground">
-          {deals.length}
+      <div className="df-tape">
+        <strong>{stage.name}</strong>
+        <span className="tape-count">
+          {paddedCount(deals.length)} {deals.length === 1 ? "deal" : "deals"}
         </span>
-        <span className="tnum ml-auto text-xs font-medium text-muted-foreground">
-          {formatCompactCurrency(total)}
+        <span className="tape-value">
+          {formatCompactCurrency(total, deals[0]?.currency ?? "USD")}
         </span>
-      </header>
+        <span className="tape-prob">{stage.defaultProbability}% win</span>
+      </div>
 
-      <div className="flex min-h-[120px] flex-1 flex-col gap-2 overflow-y-auto p-2">
+      <div className="flex min-h-[120px] flex-1 flex-col gap-2 overflow-y-auto px-2">
         <SortableContext
           items={deals.map((d) => d.id)}
           strategy={verticalListSortingStrategy}
@@ -67,7 +67,7 @@ export function StageColumn({ stage, deals, pulsingDealIds }: StageColumnProps) 
           ))}
         </SortableContext>
         {deals.length === 0 && (
-          <div className="flex min-h-[96px] items-center justify-center rounded-lg border border-dashed text-xs text-muted-foreground">
+          <div className="flex min-h-[96px] items-center justify-center border border-dashed border-border text-xs text-muted-foreground">
             Drag deals here
           </div>
         )}
