@@ -61,7 +61,7 @@ export function FileList({ attachments, canDelete }: FileListProps) {
     <>
       <ul className="grid gap-2">
         {attachments.map((a) => (
-          <li key={a.id} className="flex items-center gap-3 rounded-lg border px-3 py-2">
+          <li key={a.id} className="flex items-center gap-3 rounded-[2px] border px-3 py-2">
             <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground">
               <FileText className="h-4 w-4" />
             </span>

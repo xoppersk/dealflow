@@ -97,7 +97,7 @@ export function LinkedContacts({ dealId, links }: LinkedContactsProps) {
       </div>
 
       {adding && (
-        <div className="grid gap-2 rounded-lg border p-3">
+        <div className="grid gap-2 rounded-[2px] border p-3">
           <Label htmlFor="link-contact-search" className="text-xs">
             Search contacts
           </Label>
@@ -157,7 +157,7 @@ export function LinkedContacts({ dealId, links }: LinkedContactsProps) {
           {links.map(({ contact, role: r }) => (
             <li
               key={contact.id}
-              className="flex items-center gap-3 rounded-lg border px-3 py-2"
+              className="flex items-center gap-3 rounded-[2px] border px-3 py-2"
             >
               <UserAvatar userId={contact.id} name={fullName(contact.first_name, contact.last_name)} size="sm" />
               <div className="min-w-0 flex-1">

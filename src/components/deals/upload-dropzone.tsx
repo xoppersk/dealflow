@@ -120,7 +120,7 @@ export function UploadDropzone({ dealId, onUploaded }: UploadDropzoneProps) {
           handleFiles(e.dataTransfer.files);
         }}
         className={cn(
-          "flex cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border border-dashed px-6 py-8 text-center transition-colors",
+          "flex cursor-pointer flex-col items-center justify-center gap-2 rounded-[2px] border border-dashed px-6 py-8 text-center transition-colors",
           dragging ? "border-primary bg-primary/5" : "hover:border-muted-foreground/50",
         )}
       >
@@ -145,7 +145,7 @@ export function UploadDropzone({ dealId, onUploaded }: UploadDropzoneProps) {
       {uploads.length > 0 && (
         <ul className="grid gap-2">
           {uploads.map((u) => (
-            <li key={u.id} className="flex items-center gap-3 rounded-lg border px-3 py-2">
+            <li key={u.id} className="flex items-center gap-3 rounded-[2px] border px-3 py-2">
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-medium">{u.name}</p>
                 {u.error ? (
