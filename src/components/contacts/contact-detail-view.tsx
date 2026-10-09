@@ -126,7 +126,7 @@ export function ContactDetailView({ data, currentUserId }: ContactDetailViewProp
         <div className="flex items-start gap-4">
           <UserAvatar userId={contact.id} name={name} size="lg" />
           <div className="min-w-0 flex-1">
-            <h1 className="text-2xl font-semibold tracking-tight">{name}</h1>
+            <h1 className="df-page-title">{name}</h1>
             <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
               {contact.title && <span>{contact.title}</span>}
               {company && (
@@ -138,7 +138,7 @@ export function ContactDetailView({ data, currentUserId }: ContactDetailViewProp
             </div>
             <div className="mt-2 flex flex-wrap items-center gap-2">
               {contact.email && (
-                <span className="flex items-center gap-1 rounded-md border px-2 py-1 text-sm">
+                <span className="flex items-center gap-1 rounded-[2px] border px-2 py-1 text-sm">
                   {contact.email}
                   <button
                     type="button"
@@ -151,7 +151,7 @@ export function ContactDetailView({ data, currentUserId }: ContactDetailViewProp
                 </span>
               )}
               {contact.phone && (
-                <span className="flex items-center gap-1 rounded-md border px-2 py-1 text-sm">
+                <span className="flex items-center gap-1 rounded-[2px] border px-2 py-1 text-sm">
                   {contact.phone}
                   <button
                     type="button"
@@ -213,7 +213,7 @@ export function ContactDetailView({ data, currentUserId }: ContactDetailViewProp
                 <li key={deal.id}>
                   <Link
                     href={`/deals/${deal.id}`}
-                    className="flex items-center gap-3 rounded-lg border bg-card p-3 hover:bg-accent/50"
+                    className="flex items-center gap-3 rounded-[2px] border bg-card p-3 hover:bg-accent/50"
                   >
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-sm font-medium">{deal.name}</p>

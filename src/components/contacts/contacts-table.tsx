@@ -111,7 +111,8 @@ export function ContactsTable({ currentUserId }: ContactsTableProps) {
     <div className="flex flex-col gap-4">
       <PageHeader
         title="Contacts"
-        description="Everyone you're selling to."
+        kicker="Dealflow / Records"
+        description="Keep decision-makers, relationships, and recent touchpoints connected to the deal."
         actions={
           <Button onClick={() => setDialogOpen(true)}>
             <Plus className="h-4 w-4" />
@@ -162,7 +163,7 @@ export function ContactsTable({ currentUserId }: ContactsTableProps) {
       </div>
 
       {/* Desktop table */}
-      <div className="hidden rounded-lg border md:block">
+      <div className="hidden rounded-[2px] border md:block">
         <Table>
           <TableHeader>
             <TableRow>
@@ -259,7 +260,7 @@ export function ContactsTable({ currentUserId }: ContactsTableProps) {
             <Link
               key={c.id}
               href={`/contacts/${c.id}`}
-              className="flex items-center gap-3 rounded-lg border bg-card p-3"
+              className="flex items-center gap-3 rounded-[2px] border bg-card p-3"
             >
               <UserAvatar userId={c.id} name={fullName(c.first_name, c.last_name)} />
               <div className="min-w-0 flex-1">
