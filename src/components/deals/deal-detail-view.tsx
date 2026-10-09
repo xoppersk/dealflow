@@ -2,24 +2,29 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { Pencil } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 import { ActivityComposer } from "@/components/activities/activity-composer";
-import { Timeline } from "@/components/activities/timeline";
-import { Badge } from "@/components/ui/badge";
+import { LogOutcomeDialog } from "@/components/activities/log-outcome-dialog";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { DaysInStageBadge } from "@/components/shared/days-in-stage-badge";
 import { EmptyState } from "@/components/shared/empty-state";
-import { MoveStageMenu } from "@/components/pipeline/move-stage-menu";
+import { CloseDealDialog } from "@/components/pipeline/close-deal-dialog";
 import { DealActionsMenu } from "@/components/deals/deal-actions-menu";
 import { FieldGrid } from "@/components/deals/field-grid";
 import { FileList } from "@/components/deals/file-list";
 import { LinkedContacts } from "@/components/deals/linked-contacts";
-import { PresenceStack } from "@/components/deals/presence-stack";
 import { UploadDropzone } from "@/components/deals/upload-dropzone";
-import { usePresence } from "@/lib/realtime/channels";
-import { daysInStage, formatCurrency, formatCompactCurrency, formatDate, initials } from "@/lib/format";
+import { moveDeal } from "@/lib/actions/pipeline";
+import { checkStageMove } from "@/lib/domain/stage-rules";
+import {
+  daysInStage,
+  formatCompactCurrency,
+  formatLongDate,
+  formatTimeOfDay,
+  initials,
+} from "@/lib/format";
 import type { DealDetailData } from "@/lib/actions/deals";
 import type { PipelineStageRow, UserRole } from "@/lib/supabase/types";
 import type { TimelineEntry } from "@/lib/types";
@@ -30,23 +35,21 @@ interface DealDetailViewProps {
   currentUser: { id: string; name: string; avatarUrl: string | null; role: UserRole };
 }
 
-const DEAL_TYPE_LABELS: Record<string, string> = {
-  new_business: "New business",
-  renewal: "Renewal",
-  expansion: "Expansion",
-  other: "Other",
-};
+/** Forecast category from the effective probability (artifact: 78% → Commit). */
+function forecastLabel(probability: number | null): string {
+  if (probability == null) return "—";
+  if (probability >= 70) return "Commit";
+  if (probability >= 40) return "Best case";
+  return "Pipeline";
+}
 
 export function DealDetailView({ data, stages, currentUser }: DealDetailViewProps) {
+  const router = useRouter();
   const { deal, company, owner, stage, contacts, attachments, stageHistory, activities } = data;
   const [editing, setEditing] = useState(false);
-  const [tab, setTab] = useState("timeline");
-
-  const others = usePresence(`deal:${deal.id}`, {
-    userId: currentUser.id,
-    name: currentUser.name,
-    avatarUrl: currentUser.avatarUrl,
-  });
+  const [outcomeOpen, setOutcomeOpen] = useState(false);
+  const [closeStage, setCloseStage] = useState<PipelineStageRow | null>(null);
+  const [advancing, setAdvancing] = useState(false);
 
   const entries: TimelineEntry[] = useMemo(() => {
     const activityEntries: TimelineEntry[] = activities.map((a) => ({
@@ -79,121 +82,192 @@ export function DealDetailView({ data, stages, currentUser }: DealDetailViewProp
     );
   }, [activities, stageHistory, deal.id]);
 
-  const stageColor = stage?.color ?? "#78716c";
-  const canDeleteFiles = deal.owner_id === currentUser.id || currentUser.role === "admin";
+  /** Hero next step: the nearest open follow-up (signature: Bracken Works). */
+  const nextStep = useMemo(
+    () =>
+      activities
+        .filter((a) => a.is_follow_up && !a.completed_at && a.due_at)
+        .sort((a, b) =>
+          (a.due_at as string).localeCompare(b.due_at as string),
+        )[0] ?? null,
+    [activities],
+  );
+
+  const days = daysInStage(deal.stage_entered_at);
   const probability = deal.probability ?? stage?.default_probability ?? null;
+  const canDeleteFiles = deal.owner_id === currentUser.id || currentUser.role === "admin";
+
+  // ---- Advance to contract --------------------------------------------------
+  const openStages = useMemo(
+    () =>
+      stages
+        .filter((s) => !s.is_closed_won && !s.is_closed_lost)
+        .sort((a, b) => a.position - b.position),
+    [stages],
+  );
+  const advanceTarget = useMemo(() => {
+    const currentPos = stage?.position ?? -1;
+    return (
+      openStages.find((s) => s.position > currentPos) ??
+      stages.find((s) => s.is_closed_won) ??
+      null
+    );
+  }, [openStages, stages, stage]);
+
+  async function commitAdvance(toStageId: string, closeConfirmed: boolean) {
+    setAdvancing(true);
+    try {
+      const result = await moveDeal({
+        dealId: deal.id,
+        toStageId,
+        version: deal.version,
+        closeConfirmed,
+      });
+      if (result.ok) {
+        const name = stages.find((s) => s.id === toStageId)?.name ?? "the new stage";
+        toast.success(`Deal moved to ${name}.`);
+        router.refresh();
+        return;
+      }
+      if (result.error === "VERSION_CONFLICT") {
+        toast.warning("This deal was just moved by a teammate — your change wasn't applied.");
+        router.refresh();
+        return;
+      }
+      if (result.error === "CLOSE_CONFIRMATION_REQUIRED") {
+        const target = stages.find((s) => s.id === toStageId);
+        if (target) setCloseStage(target);
+        return;
+      }
+      toast.error(result.error);
+    } finally {
+      setAdvancing(false);
+    }
+  }
+
+  function handleAdvance() {
+    if (!advanceTarget || !stage) return;
+    const verdict = checkStageMove({
+      fromStage: stage,
+      toStage: advanceTarget,
+      closeConfirmed: false,
+    });
+    if (!verdict.ok) {
+      toast.error(verdict.reason);
+      return;
+    }
+    if (verdict.requiresCloseConfirmation) {
+      setCloseStage(advanceTarget);
+      return;
+    }
+    void commitAdvance(advanceTarget.id, false);
+  }
 
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-6 sm:px-6">
-      {/* Header — deal ledger */}
-      <header>
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-          <div className="min-w-0">
-            <p className="df-kicker">
-              Deal · {company ? company.name : "No company"}
-            </p>
-            <h1 className="df-page-title mt-1">{deal.name}</h1>
-            <p className="mt-1.5 text-sm text-muted-foreground">
-              {DEAL_TYPE_LABELS[deal.deal_type] ?? "Deal"}
-              {company ? (
-                <>
-                  {" · "}
-                  <Link href={`/companies/${company.id}`} className="font-medium text-foreground hover:underline">
-                    {company.name}
-                  </Link>
-                </>
-              ) : null}
-              {owner ? ` · owned by ${owner.full_name}` : null}
-            </p>
-            <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1.5">
-              <Badge variant="secondary" className="gap-1.5">
-                <span className="h-2 w-2 rounded-full" style={{ backgroundColor: stageColor }} />
-                {stage?.name ?? "No stage"}
-              </Badge>
-              <DaysInStageBadge days={daysInStage(deal.stage_entered_at)} />
-              {deal.closed_at && (
-                <span className="text-xs text-muted-foreground">
-                  Closed {formatDate(deal.closed_at)}
-                </span>
-              )}
-              <PresenceStack users={others} />
-            </div>
-          </div>
-          <div className="shrink-0 border border-border bg-card px-5 py-3 text-right">
-            <span className="block text-[11px] text-muted-foreground">Ticket value</span>
-            <strong className="df-money mt-1 block text-2xl">
-              {formatCompactCurrency(deal.value, deal.currency)}
-            </strong>
-            <small className="tnum mt-1 block text-[11px] text-muted-foreground">
-              {daysInStage(deal.stage_entered_at)} days in {stage?.name ?? "—"}
-            </small>
-          </div>
+      {/* Header — deal ledger (flagship-ui-designs, Dealflow / Screens) */}
+      <header className="df-deal-head">
+        <div className="min-w-0">
+          <p className="df-kicker">
+            Deal · {company ? company.name : "No company"}
+          </p>
+          <h3>{deal.name}</h3>
+          <p className="deal-sub">
+            {deal.description ? `${deal.description} · ` : ""}
+            owned by {owner?.full_name ?? "Unknown"}
+          </p>
         </div>
-
-        {/* Action bar */}
-        <div className="mt-4 flex flex-wrap items-center gap-2">
-          <MoveStageMenu
-            dealId={deal.id}
-            currentStageId={deal.stage_id}
-            version={deal.version}
-            stages={stages.map((s) => ({ id: s.id, name: s.name, color: s.color }))}
-          />
-          <ActivityComposer dealId={deal.id} />
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => {
-              setTab("details");
-              setEditing(true);
-            }}
-          >
-            <Pencil className="h-4 w-4" />
-            Edit
-          </Button>
-          <DealActionsMenu deal={deal} stages={stages} role={currentUser.role} currentUserId={currentUser.id} />
+        <div className="df-ticket-value shrink-0">
+          <span>Ticket value</span>
+          <strong>{formatCompactCurrency(Number(deal.value), deal.currency)}</strong>
+          <small>
+            {days} {days === 1 ? "day" : "days"} in {stage?.name ?? "—"}
+          </small>
         </div>
       </header>
 
-      {/* Body: tabs + decision rail */}
+      {/* Action bar — sentence-case deal actions */}
+      <nav className="flex flex-wrap items-center justify-end gap-2" aria-label="Deal actions">
+        <ActivityComposer
+          dealId={deal.id}
+          defaultType="note"
+          trigger={
+            <Button variant="outline" size="sm" className="h-11 min-h-11 px-4">
+              Log note
+            </Button>
+          }
+        />
+        <ActivityComposer
+          dealId={deal.id}
+          trigger={
+            <Button variant="outline" size="sm" className="h-11 min-h-11 px-4">
+              Add activity
+            </Button>
+          }
+        />
+        {advanceTarget && (
+          <Button
+            size="sm"
+            className="h-11 min-h-11 px-4"
+            disabled={advancing}
+            onClick={handleAdvance}
+          >
+            Advance to contract
+          </Button>
+        )}
+        <DealActionsMenu deal={deal} stages={stages} role={currentUser.role} currentUserId={currentUser.id} />
+      </nav>
+
+      {/* Body: next step + timeline | stakeholders + facts */}
       <div className="grid gap-6 lg:grid-cols-3">
-        <div className="min-w-0 lg:col-span-2">
-          <Tabs value={tab} onValueChange={setTab}>
-            <TabsList>
-              <TabsTrigger value="timeline">Timeline</TabsTrigger>
-              <TabsTrigger value="details">Details</TabsTrigger>
-              <TabsTrigger value="files">Files ({attachments.length})</TabsTrigger>
-            </TabsList>
+        <main className="grid min-w-0 content-start gap-6 lg:col-span-2">
+          {nextStep && (
+            <section className="df-next-step" aria-label="Next step">
+              <span>
+                Next step ·{" "}
+                {new Date(nextStep.due_at as string).getTime() <
+                new Date(new Date().toDateString()).getTime()
+                  ? `overdue ${formatLongDate(nextStep.due_at as string)}`
+                  : `due ${formatLongDate(nextStep.due_at as string)}`}
+              </span>
+              <h4>{nextStep.subject ?? "Follow up"}</h4>
+              {nextStep.body && <p>{nextStep.body}</p>}
+              <Button size="sm" className="h-11 min-h-11 px-4" onClick={() => setOutcomeOpen(true)}>
+                Mark ready for review
+              </Button>
+            </section>
+          )}
 
-            <TabsContent value="timeline" className="mt-4">
-              <div className="grid gap-4">
-                <div className="border border-border bg-card p-4">
-                  <ActivityComposer dealId={deal.id} />
-                </div>
-                <Timeline entries={entries} />
+          <section className="border border-border bg-card p-4 sm:p-5" aria-label="Activity timeline">
+            <div className="df-section-rule">
+              <h4>Activity timeline</h4>
+              <span>{entries.length} {entries.length === 1 ? "entry" : "entries"}</span>
+            </div>
+            {entries.length === 0 ? (
+              <p className="py-6 text-center text-sm text-muted-foreground">
+                No activity yet — log the first call to start this timeline.
+              </p>
+            ) : (
+              <div className="df-timeline">
+                {entries.map((entry) => (
+                  <article key={entry.id}>
+                    <time>
+                      {formatLongDate(entry.occurredAt)} · {formatTimeOfDay(entry.occurredAt)}
+                    </time>
+                    <div className="min-w-0">
+                      <b className="block">{entry.subject ?? "Activity"}</b>
+                      {entry.body && <p>{entry.body}</p>}
+                    </div>
+                    <span className="timeline-actor" title={entry.actorName}>
+                      {initials(entry.actorName)}
+                    </span>
+                  </article>
+                ))}
               </div>
-            </TabsContent>
+            )}
+          </section>
+        </main>
 
-            <TabsContent value="details" className="mt-4">
-              <div className="grid gap-6">
-                <div className="border border-border bg-card p-4 sm:p-6">
-                  <FieldGrid deal={deal} editing={editing} onDone={() => setEditing(false)} />
-                </div>
-                <div className="border border-border bg-card p-4 sm:p-6">
-                  <LinkedContacts dealId={deal.id} links={contacts} />
-                </div>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="files" className="mt-4">
-              <div className="grid gap-4">
-                <UploadDropzone dealId={deal.id} />
-                <FileList attachments={attachments} canDelete={canDeleteFiles} />
-              </div>
-            </TabsContent>
-          </Tabs>
-        </div>
-
-        {/* Decision rail */}
         <aside className="min-w-0 space-y-6">
           <section className="border border-border bg-card p-4" aria-label="Stakeholders">
             <div className="df-section-rule">
@@ -233,19 +307,88 @@ export function DealDetailView({ data, stages, currentUser }: DealDetailViewProp
             </div>
             <div>
               <span>Close target</span>
-              <b className="tnum">{deal.close_date ? formatDate(`${deal.close_date}T12:00:00`) : "—"}</b>
+              <b className="tnum">
+                {deal.close_date ? formatLongDate(`${deal.close_date}T12:00:00`) : "—"}
+              </b>
             </div>
             <div>
               <span>Probability</span>
               <b className="tnum">{probability != null ? `${probability}%` : "—"}</b>
             </div>
             <div>
-              <span>Value</span>
-              <b className="tnum">{formatCurrency(deal.value, deal.currency)}</b>
+              <span>Forecast</span>
+              <b>{forecastLabel(probability)}</b>
             </div>
           </section>
         </aside>
       </div>
+
+      {/* Records: editable fields + files (kept below the ledger) */}
+      <section aria-label="Deal records">
+        <div className="df-section-rule">
+          <h4>Records</h4>
+          <span>Fields and files</span>
+        </div>
+        <Tabs defaultValue="details" className="mt-4">
+          <TabsList>
+            <TabsTrigger value="details">Details</TabsTrigger>
+            <TabsTrigger value="files">Files ({attachments.length})</TabsTrigger>
+          </TabsList>
+          <TabsContent value="details" className="mt-4">
+            <div className="border border-border bg-card p-4 sm:p-6">
+              <div className="mb-4 flex justify-end">
+                <Button variant="outline" size="sm" onClick={() => setEditing((v) => !v)}>
+                  {editing ? "Done" : "Edit"}
+                </Button>
+              </div>
+              <FieldGrid deal={deal} editing={editing} onDone={() => setEditing(false)} />
+            </div>
+            <div className="mt-4 border border-border bg-card p-4 sm:p-6">
+              <LinkedContacts dealId={deal.id} links={contacts} />
+            </div>
+          </TabsContent>
+          <TabsContent value="files" className="mt-4">
+            <div className="grid gap-4">
+              <UploadDropzone dealId={deal.id} />
+              <FileList attachments={attachments} canDelete={canDeleteFiles} />
+            </div>
+          </TabsContent>
+        </Tabs>
+      </section>
+
+      {nextStep && (
+        <LogOutcomeDialog
+          activityId={nextStep.id}
+          open={outcomeOpen}
+          onOpenChange={setOutcomeOpen}
+          onDone={() => router.refresh()}
+        />
+      )}
+
+      {closeStage && (
+        <CloseDealDialog
+          deal={{
+            id: deal.id,
+            name: deal.name,
+            value: Number(deal.value),
+            currency: deal.currency,
+          }}
+          stage={{
+            id: closeStage.id,
+            name: closeStage.name,
+            isClosedWon: closeStage.is_closed_won,
+            isClosedLost: closeStage.is_closed_lost,
+          }}
+          open
+          onOpenChange={(open) => {
+            if (!open) setCloseStage(null);
+          }}
+          onConfirm={() => {
+            setCloseStage(null);
+            void commitAdvance(closeStage.id, true);
+          }}
+        />
+      )}
     </div>
   );
 }
