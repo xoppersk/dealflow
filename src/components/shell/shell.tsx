@@ -62,7 +62,11 @@ export function Shell({
   return (
     <AppProviders>
       <div className="flex min-h-dvh bg-background text-foreground">
-        <Sidebar role={user.role} overdueCount={overdueCount} />
+        <Sidebar
+          user={{ id: user.id, name: user.name, avatarUrl: user.avatarUrl }}
+          role={user.role}
+          overdueCount={overdueCount}
+        />
         <div className="flex min-w-0 flex-1 flex-col">
           <Topbar
             user={user}

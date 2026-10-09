@@ -1,46 +1,43 @@
 /**
- * Dealflow brand mark — three staggered ascending bars + the wordmark.
- * Sizes scale the SVG and the type together.
+ * Dealflow brand mark — three staggered bars ascending left to right
+ * (a pipeline abstracted), single color, next to the wordmark in
+ * Newsreader 600. Legible at 16px.
  */
 
-const BAR_HEIGHTS = [10, 16, 22];
-
-export function BrandMark({ size = 32 }: { size?: number }) {
+export function BrandMark({
+  size = 32,
+  color = "#0f766e",
+  wordmark = true,
+}: {
+  size?: number;
+  /** Single bar color — teal on paper, cream/gold on the dark rail. */
+  color?: string;
+  wordmark?: boolean;
+}) {
   const fontSize = Math.round(size * 0.62);
   return (
     <span className="inline-flex items-center gap-2" aria-label="Dealflow">
       <svg
         width={size}
         height={size}
-        viewBox="0 0 32 32"
+        viewBox="0 0 24 24"
         fill="none"
         role="img"
         aria-hidden="true"
       >
-        <defs>
-          <linearGradient id="df-bars" x1="4" y1="28" x2="28" y2="4">
-            <stop offset="0" stopColor="#14b8a6" />
-            <stop offset="1" stopColor="#059669" />
-          </linearGradient>
-        </defs>
-        {BAR_HEIGHTS.map((h, i) => (
-          <rect
-            key={i}
-            x={4 + i * 9}
-            y={28 - h}
-            width={6.5}
-            height={h}
-            rx={2}
-            fill="url(#df-bars)"
-          />
-        ))}
+        <path
+          d="M4 18h4V8H4v10Zm6 0h4V4h-4v14Zm6 0h4v-7h-4v7Z"
+          fill={color}
+        />
       </svg>
-      <span
-        className="font-semibold tracking-tight text-foreground"
-        style={{ fontSize }}
-      >
-        Dealflow
-      </span>
+      {wordmark && (
+        <span
+          className="font-display font-semibold tracking-tight"
+          style={{ fontSize, color }}
+        >
+          Dealflow
+        </span>
+      )}
     </span>
   );
 }

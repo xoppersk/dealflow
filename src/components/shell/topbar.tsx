@@ -77,7 +77,7 @@ export function Topbar({
   const { theme, setTheme } = useTheme();
 
   return (
-    <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center gap-2 border-b bg-background/95 px-4 backdrop-blur md:px-6">
+    <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center gap-2 border-b border-border bg-background px-4 md:px-6">
       {/* Search trigger (⌘K) */}
       <Button
         variant="outline"

@@ -64,7 +64,7 @@ export function BottomNav({ role, overdueCount = 0, onOpenPalette }: BottomNavPr
       >
         <Link href="/" className={tab(pathname === "/")}>
           <LayoutDashboard className="h-6 w-6" />
-          Dashboard
+          Today
         </Link>
         <Link
           href="/pipeline"
@@ -122,7 +122,7 @@ export function BottomNav({ role, overdueCount = 0, onOpenPalette }: BottomNavPr
                   key={item.href}
                   href={item.href}
                   onClick={() => setMoreOpen(false)}
-                  className="flex h-12 items-center gap-3 rounded-lg px-3 text-sm font-medium text-foreground hover:bg-accent"
+                  className="flex h-12 items-center gap-3 rounded-[2px] px-3 text-sm font-medium text-foreground hover:bg-accent"
                 >
                   <Icon className="h-5 w-5 text-muted-foreground" />
                   {item.label}
@@ -133,7 +133,7 @@ export function BottomNav({ role, overdueCount = 0, onOpenPalette }: BottomNavPr
               <Link
                 href="/reports"
                 onClick={() => setMoreOpen(false)}
-                className="flex h-12 items-center gap-3 rounded-lg px-3 text-sm font-medium text-foreground hover:bg-accent"
+                className="flex h-12 items-center gap-3 rounded-[2px] px-3 text-sm font-medium text-foreground hover:bg-accent"
               >
                 <KanbanSquare className="h-5 w-5 text-muted-foreground" />
                 Reports
@@ -142,7 +142,7 @@ export function BottomNav({ role, overdueCount = 0, onOpenPalette }: BottomNavPr
             <button
               type="button"
               onClick={() => signOut()}
-              className="flex h-12 w-full items-center gap-3 rounded-lg px-3 text-sm font-medium text-destructive hover:bg-accent"
+              className="flex h-12 w-full items-center gap-3 rounded-[2px] px-3 text-sm font-medium text-destructive hover:bg-accent"
             >
               <LogOut className="h-5 w-5" />
               Sign out
