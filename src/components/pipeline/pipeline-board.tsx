@@ -140,7 +140,7 @@ export function PipelineBoard({
     () => ({ userId: user.id, name: user.name, avatarUrl: user.avatarUrl }),
     [user.id, user.name, user.avatarUrl],
   );
-  const viewingNow = usePresence("workspace:deals", self);
+  const viewingNow = usePresence("workspace:deals:presence", self);
   useStagesChannel();
 
   // ---- filters (URL-synced) ---------------------------------------------
