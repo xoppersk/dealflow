@@ -114,7 +114,7 @@ export function ContactsTable({ currentUserId }: ContactsTableProps) {
         kicker="Dealflow / Records"
         description="Keep decision-makers, relationships, and recent touchpoints connected to the deal."
         actions={
-          <Button onClick={() => setDialogOpen(true)}>
+          <Button className="max-sm:min-h-11" onClick={() => setDialogOpen(true)}>
             <Plus className="h-4 w-4" />
             New contact
           </Button>
@@ -126,7 +126,7 @@ export function ContactsTable({ currentUserId }: ContactsTableProps) {
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
-            className="pl-9"
+            className="pl-9 max-sm:min-h-11"
             placeholder="Search name or email…"
             value={q}
             onChange={(e) => setQ(e.target.value)}
@@ -134,7 +134,7 @@ export function ContactsTable({ currentUserId }: ContactsTableProps) {
         </div>
         <div className="flex gap-2">
           <Select value={ownerId} onValueChange={setOwnerId}>
-            <SelectTrigger className="w-[160px]">
+            <SelectTrigger className="w-[160px] max-sm:min-h-11">
               <SelectValue placeholder="All owners" />
             </SelectTrigger>
             <SelectContent>
@@ -147,7 +147,7 @@ export function ContactsTable({ currentUserId }: ContactsTableProps) {
             </SelectContent>
           </Select>
           <Select value={companyId} onValueChange={setCompanyId}>
-            <SelectTrigger className="w-[180px]">
+            <SelectTrigger className="w-[180px] max-sm:min-h-11">
               <SelectValue placeholder="All companies" />
             </SelectTrigger>
             <SelectContent>
@@ -191,7 +191,7 @@ export function ContactsTable({ currentUserId }: ContactsTableProps) {
                       title={`No contacts match "${q}"`}
                       description="Try a different search."
                       action={
-                        <Button variant="outline" onClick={() => setQ("")}>
+                        <Button variant="outline" className="max-sm:min-h-11" onClick={() => setQ("")}>
                           Clear search
                         </Button>
                       }
@@ -201,7 +201,7 @@ export function ContactsTable({ currentUserId }: ContactsTableProps) {
                       title="No contacts yet"
                       description="Add your first contact to start building your pipeline."
                       action={
-                        <Button onClick={() => setDialogOpen(true)}>
+                        <Button className="max-sm:min-h-11" onClick={() => setDialogOpen(true)}>
                           <Plus className="h-4 w-4" />
                           Add your first contact
                         </Button>
@@ -244,11 +244,11 @@ export function ContactsTable({ currentUserId }: ContactsTableProps) {
             description={q ? "Try a different search." : "Add your first contact to get started."}
             action={
               q ? (
-                <Button variant="outline" onClick={() => setQ("")}>
+                <Button variant="outline" className="max-sm:min-h-11" onClick={() => setQ("")}>
                   Clear search
                 </Button>
               ) : (
-                <Button onClick={() => setDialogOpen(true)}>
+                <Button className="max-sm:min-h-11" onClick={() => setDialogOpen(true)}>
                   <Plus className="h-4 w-4" />
                   Add your first contact
                 </Button>
