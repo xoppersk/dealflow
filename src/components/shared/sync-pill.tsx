@@ -21,11 +21,15 @@ export function SyncPill({
   syncing = false,
   className,
 }: SyncPillProps) {
-  const [online, setOnline] = React.useState<boolean>(() =>
-    typeof navigator === "undefined" ? true : navigator.onLine
-  );
+  // First render must match the server snapshot ("online"): Node's SSR
+  // runtime exposes a global `navigator` whose `onLine` is `undefined`, so
+  // reading it in the initializer rendered an "Offline" pill on the server
+  // that no client ever renders — a hydration mismatch on every shell route.
+  // The effect syncs the real value immediately after mount.
+  const [online, setOnline] = React.useState<boolean>(true);
 
   React.useEffect(() => {
+    setOnline(navigator.onLine);
     const goOnline = () => setOnline(true);
     const goOffline = () => setOnline(false);
     window.addEventListener("online", goOnline);
