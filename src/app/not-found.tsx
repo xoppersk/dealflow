@@ -1,4 +1,7 @@
+import type { Metadata } from "next";
 import Link from "next/link";
+
+export const metadata: Metadata = { title: "Page not found" };
 
 /**
  * 404 — line illustration, "This page doesn't exist", shortcuts back into
@@ -45,6 +48,12 @@ export default function NotFound() {
             className="inline-flex min-h-11 items-center rounded-[2px] border border-border bg-card px-4 text-sm font-medium hover:border-primary"
           >
             New deal
+          </Link>
+          <Link
+            href="/login"
+            className="inline-flex min-h-11 items-center rounded-[2px] border border-border bg-card px-4 text-sm font-medium hover:border-primary"
+          >
+            Sign in
           </Link>
         </nav>
       </div>
