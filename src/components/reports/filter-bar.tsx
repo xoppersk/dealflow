@@ -39,7 +39,7 @@ export function ReportFilterBar({
           value={from}
           max={to}
           onChange={(e) => setFrom(e.target.value)}
-          className="w-40"
+          className="w-40 max-sm:min-h-11"
         />
       </div>
       <div className="flex flex-col gap-1.5">
@@ -50,7 +50,7 @@ export function ReportFilterBar({
           value={to}
           min={from}
           onChange={(e) => setTo(e.target.value)}
-          className="w-40"
+          className="w-40 max-sm:min-h-11"
         />
       </div>
       <div className="flex flex-col gap-1.5">
@@ -59,7 +59,7 @@ export function ReportFilterBar({
           value={ownerId ?? "all"}
           onValueChange={(v) => setOwnerId(v === "all" ? null : v)}
         >
-          <SelectTrigger id="reports-rep" className="w-48">
+          <SelectTrigger id="reports-rep" className="w-48 max-sm:min-h-11">
             <SelectValue placeholder="All reps" />
           </SelectTrigger>
           <SelectContent>
@@ -73,12 +73,13 @@ export function ReportFilterBar({
         </SelectRoot>
       </div>
       <div className="flex gap-2">
-        <Button disabled={!dirty} onClick={() => onApply({ from, to, ownerId })}>
+        <Button disabled={!dirty} onClick={() => onApply({ from, to, ownerId })} className="max-sm:min-h-11">
           Apply
         </Button>
         <Button
           variant="outline"
           disabled={!dirty}
+          className="max-sm:min-h-11"
           onClick={() => {
             setFrom(initial.from);
             setTo(initial.to);
