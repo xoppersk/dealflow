@@ -105,7 +105,7 @@ export function WorkspaceForm({
           <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-6">
             <div className="flex flex-col gap-1.5">
               <FieldLabel htmlFor="ws-name">Workspace name</FieldLabel>
-              <Input id="ws-name" {...register("workspaceName")} maxLength={80} />
+              <Input id="ws-name" className="max-sm:min-h-11" {...register("workspaceName")} maxLength={80} />
               {errors.workspaceName && <FieldError>{errors.workspaceName.message}</FieldError>}
             </div>
 
@@ -116,7 +116,7 @@ export function WorkspaceForm({
                 onValueChange={(v) => setValue("defaultCurrency", v, { shouldDirty: true })}
                 disabled={!isAdmin}
               >
-                <SelectTrigger id="ws-currency" className="w-56">
+                <SelectTrigger id="ws-currency" className="w-56 max-sm:min-h-11">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -141,7 +141,7 @@ export function WorkspaceForm({
                 type="number"
                 min={1}
                 max={90}
-                className="w-32"
+                className="w-32 max-sm:min-h-11"
                 disabled={!isAdmin}
                 {...register("staleThresholdDays")}
               />
@@ -164,13 +164,14 @@ export function WorkspaceForm({
               </div>
               <Switch
                 id="ws-digest"
+                className="relative max-sm:after:absolute max-sm:after:-inset-x-1 max-sm:after:-inset-y-3 max-sm:after:content-['']"
                 checked={digest}
                 onCheckedChange={(v) => setValue("digestEnabled", v, { shouldDirty: true })}
               />
             </div>
 
             <div>
-              <Button type="submit" disabled={saving || !isDirty}>
+              <Button type="submit" className="max-sm:min-h-11" disabled={saving || !isDirty}>
                 {saving ? "Saving…" : "Save settings"}
               </Button>
             </div>

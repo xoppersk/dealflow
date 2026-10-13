@@ -106,7 +106,7 @@ function RoleSelect({
           if (v !== user.role) setConfirmRole(v);
         }}
       >
-        <SelectTrigger className="w-32 capitalize">
+        <SelectTrigger className="w-32 capitalize max-sm:min-h-11">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
@@ -193,13 +193,13 @@ function InviteForm({ onSent }: { onSent: () => void }) {
         <form onSubmit={handleSubmit(onSubmit)} className="flex flex-wrap items-end gap-3">
           <div className="flex min-w-52 flex-1 flex-col gap-1.5">
             <FieldLabel htmlFor="invite-email">Email</FieldLabel>
-            <Input id="invite-email" type="email" placeholder="maya@example.com" {...register("email")} />
+            <Input id="invite-email" type="email" placeholder="maya@example.com" className="max-sm:min-h-11" {...register("email")} />
             {errors.email && <FieldError>{errors.email.message}</FieldError>}
           </div>
           <div className="flex flex-col gap-1.5">
             <FieldLabel htmlFor="invite-role">Role</FieldLabel>
             <SelectRoot value={role} onValueChange={(v) => setValue("role", v as (typeof ROLES)[number])}>
-              <SelectTrigger id="invite-role" className="w-36 capitalize">
+              <SelectTrigger id="invite-role" className="w-36 capitalize max-sm:min-h-11">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -211,7 +211,7 @@ function InviteForm({ onSent }: { onSent: () => void }) {
               </SelectContent>
             </SelectRoot>
           </div>
-          <Button type="submit" disabled={sending}>
+          <Button type="submit" disabled={sending} className="max-sm:min-h-11">
             <MailPlus className="h-4 w-4" />
             {sending ? "Sending…" : "Send invite"}
           </Button>

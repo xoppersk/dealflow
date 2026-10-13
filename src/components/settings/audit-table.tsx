@@ -90,7 +90,7 @@ export function AuditTable() {
         <div className="flex flex-col gap-1.5">
           <FieldLabel htmlFor="audit-entity">Entity</FieldLabel>
           <SelectRoot value={entityType} onValueChange={setEntityType}>
-            <SelectTrigger id="audit-entity" className="w-48">
+            <SelectTrigger id="audit-entity" className="w-48 max-sm:min-h-11">
               <SelectValue placeholder="All entities" />
             </SelectTrigger>
             <SelectContent>
@@ -106,7 +106,7 @@ export function AuditTable() {
         <div className="flex flex-col gap-1.5">
           <FieldLabel htmlFor="audit-action">Action</FieldLabel>
           <SelectRoot value={action} onValueChange={setAction}>
-            <SelectTrigger id="audit-action" className="w-56">
+            <SelectTrigger id="audit-action" className="w-56 max-sm:min-h-11">
               <SelectValue placeholder="All actions" />
             </SelectTrigger>
             <SelectContent>
@@ -119,7 +119,7 @@ export function AuditTable() {
             </SelectContent>
           </SelectRoot>
         </div>
-        <Button onClick={applyFilters}>Apply</Button>
+        <Button onClick={applyFilters} className="max-sm:min-h-11">Apply</Button>
       </div>
 
       <Card>

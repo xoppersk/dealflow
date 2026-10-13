@@ -80,7 +80,7 @@ function ColorDotPicker({
           type="button"
           aria-label="Pick stage color"
           onClick={() => setOpen((o) => !o)}
-          className="flex h-8 w-8 items-center justify-center rounded-full border border-border transition-transform hover:scale-110"
+          className="relative flex h-8 w-8 items-center justify-center rounded-full border border-border transition-transform hover:scale-110 max-sm:after:absolute max-sm:after:-inset-[5px] max-sm:after:content-['']"
         >
           <span className="h-4 w-4 rounded-full" style={{ backgroundColor: value }} />
         </button>
@@ -92,7 +92,7 @@ function ColorDotPicker({
             className="fixed inset-0 z-10 cursor-default"
             onClick={() => setOpen(false)}
           />
-          <div className="absolute left-0 top-10 z-20 grid grid-cols-4 gap-2 rounded-md border bg-popover p-2 shadow-md">
+          <div className="absolute left-0 top-10 z-20 grid w-[168px] grid-cols-4 gap-2 rounded-md border bg-popover p-2 shadow-md">
             {STAGE_COLORS.map((c) => (
               <button
                 key={c}
@@ -103,7 +103,7 @@ function ColorDotPicker({
                   setOpen(false);
                 }}
                 className={cn(
-                  "flex h-8 w-8 items-center justify-center rounded-full transition-transform hover:scale-110",
+                  "relative flex h-8 w-8 items-center justify-center rounded-full transition-transform hover:scale-110 max-sm:after:absolute max-sm:after:-inset-1 max-sm:after:content-['']",
                   value.toLowerCase() === c.toLowerCase() && "ring-2 ring-ring ring-offset-2",
                 )}
               >
@@ -152,14 +152,14 @@ function SortableStageRow({
       ref={setNodeRef}
       style={style}
       className={cn(
-        "flex items-center gap-3 rounded-[10px] border bg-card p-3 shadow-sm",
+        "flex items-center gap-3 rounded-[10px] border bg-card p-3 shadow-sm max-sm:gap-2",
         isDragging && "shadow-lg",
       )}
     >
       <button
         type="button"
         aria-label={`Drag to reorder ${stage.name}`}
-        className="cursor-grab touch-none text-muted-foreground hover:text-foreground"
+        className="relative flex cursor-grab touch-none items-center justify-center text-muted-foreground hover:text-foreground max-sm:mr-2.5 max-sm:after:absolute max-sm:after:-inset-[13px] max-sm:after:z-10 max-sm:after:content-['']"
         {...attributes}
         {...listeners}
       >
@@ -187,19 +187,19 @@ function SortableStageRow({
             aria-label="Stage name"
           />
         ) : (
-          <p className="truncate text-sm font-medium">{stage.name}</p>
+          <p className="truncate text-sm font-medium max-sm:whitespace-normal max-sm:text-clip">{stage.name}</p>
         )}
         <p className="tnum text-xs text-muted-foreground">
           {stage.dealCount} {stage.dealCount === 1 ? "deal" : "deals"}
         </p>
       </div>
 
-      {stage.is_closed_won && <Badge variant="success">Closed won</Badge>}
-      {stage.is_closed_lost && <Badge variant="muted">Closed lost</Badge>}
+      {stage.is_closed_won && <Badge variant="success" className="max-sm:px-1.5 max-sm:text-[11px]">Closed won</Badge>}
+      {stage.is_closed_lost && <Badge variant="muted" className="max-sm:px-1.5 max-sm:text-[11px]">Closed lost</Badge>}
 
       <div className="flex items-center gap-1">
         <TooltipSimple label="Rename">
-          <Button variant="ghost" size="icon" onClick={() => setEditing(true)} aria-label={`Rename ${stage.name}`}>
+          <Button variant="ghost" size="icon" onClick={() => setEditing(true)} aria-label={`Rename ${stage.name}`} className="max-sm:h-10 max-sm:w-10">
             <Pencil className="h-4 w-4" />
           </Button>
         </TooltipSimple>
@@ -209,7 +209,7 @@ function SortableStageRow({
             size="icon"
             onClick={() => onDelete(stage)}
             aria-label={`Delete ${stage.name}`}
-            className="text-muted-foreground hover:text-destructive"
+            className="text-muted-foreground hover:text-destructive max-sm:h-10 max-sm:w-10"
           >
             <Trash2 className="h-4 w-4" />
           </Button>
@@ -376,7 +376,7 @@ export function StageManager({ initial }: { initial: StageWithCount[] }) {
         description="Mirror your sales process. Drag to reorder — the board follows."
         actions={
           !adding && (
-            <Button onClick={() => setAdding(true)}>
+            <Button onClick={() => setAdding(true)} className="max-sm:min-h-11">
               <Plus className="h-4 w-4" /> Add stage
             </Button>
           )
@@ -387,7 +387,7 @@ export function StageManager({ initial }: { initial: StageWithCount[] }) {
         <EmptyState
           title="No stages yet"
           description="Add your first stage to start building the pipeline."
-          action={<Button onClick={() => setAdding(true)}>Add stage</Button>}
+          action={<Button onClick={() => setAdding(true)} className="max-sm:min-h-11">Add stage</Button>}
         />
       ) : (
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>

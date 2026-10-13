@@ -54,17 +54,17 @@ function guessField(header: string): ContactField {
 function Stepper({ step }: { step: number }) {
   const steps = ["Upload", "Map columns", "Validate & import"];
   return (
-    <ol className="mb-6 flex items-center gap-2" aria-label="Import steps">
+    <ol className="mb-6 flex items-center gap-2 max-sm:justify-between" aria-label="Import steps">
       {steps.map((label, i) => {
         const n = i + 1;
         const done = n < step;
         const current = n === step;
         return (
-          <li key={label} className="flex items-center gap-2">
-            {n > 1 && <span className="mx-1 h-px w-6 bg-border" aria-hidden />}
+          <li key={label} className="flex items-center gap-2 max-sm:flex-col max-sm:gap-1.5">
+            {n > 1 && <span className="mx-1 h-px w-6 bg-border max-sm:hidden" aria-hidden />}
             <span
               className={cn(
-                "flex h-6 w-6 items-center justify-center rounded-full text-xs font-medium",
+                "flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-medium",
                 done && "bg-primary text-primary-foreground",
                 current && "border-2 border-primary text-primary",
                 !done && !current && "bg-muted text-muted-foreground",
@@ -73,7 +73,12 @@ function Stepper({ step }: { step: number }) {
             >
               {done ? "✓" : n}
             </span>
-            <span className={cn("text-sm", current ? "font-medium" : "text-muted-foreground")}>
+            <span
+              className={cn(
+                "whitespace-nowrap text-sm max-sm:text-[13px]",
+                current ? "font-medium" : "text-muted-foreground",
+              )}
+            >
               {label}
             </span>
           </li>
