@@ -82,7 +82,7 @@ export function Topbar({
       <Button
         variant="outline"
         onClick={onOpenPalette}
-        className="h-10 min-w-0 flex-1 justify-start gap-2 text-sm font-normal text-muted-foreground md:max-w-md"
+        className="h-10 min-w-0 flex-1 justify-start gap-2 text-sm font-normal text-muted-foreground max-sm:min-h-11 md:max-w-md"
         aria-label="Search (Command K)"
       >
         <Search className="h-4 w-4 shrink-0" />
@@ -96,7 +96,7 @@ export function Topbar({
         {/* Quick create */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button className="h-10 md:h-9" size="sm">
+            <Button className="h-10 max-sm:min-h-11 max-sm:min-w-11 md:h-9" size="sm">
               <Plus className="h-4 w-4" />
               <span className="hidden sm:inline">New</span>
               <ChevronDown className="hidden h-4 w-4 sm:inline" />
