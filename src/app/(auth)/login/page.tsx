@@ -10,7 +10,7 @@
 
 import { Suspense, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { CheckCircle2, Eye, EyeOff } from "lucide-react";
+import { CheckCircle2, Eye, EyeOff, Loader2 } from "lucide-react";
 
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -45,7 +45,8 @@ function LoginForm() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [mode, setMode] = useState<Mode>("form");
-  const [busy, setBusy] = useState(false);
+  const [busy, setBusy] = useState<"password" | "magic" | null>(null);
+  const [hint, setHint] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [cooldown, setCooldown] = useState(0);
   const passwordRef = useRef<HTMLInputElement>(null);
@@ -79,15 +80,25 @@ function LoginForm() {
   }, [cooldown]);
 
   const emailValid = EMAIL_RE.test(email.trim());
-  const canSubmit = emailValid && password.length > 0 && !busy;
 
   async function handleSignIn(event: React.FormEvent) {
     event.preventDefault();
-    if (!canSubmit) return;
-    setBusy(true);
+    if (busy !== null) return;
+    // The button stays full-strength at rest; an invalid attempt gets an
+    // inline hint instead of a silently dead, washed-out button.
+    if (!emailValid) {
+      setHint("Enter a valid email address to sign in.");
+      return;
+    }
+    if (password.length === 0) {
+      setHint("Enter your password to sign in.");
+      return;
+    }
+    setHint(null);
+    setBusy("password");
     setError(null);
     const result = await signInWithPassword({ email: email.trim(), password });
-    setBusy(false);
+    setBusy(null);
     if (result.ok) {
       router.push(next);
       router.refresh();
@@ -98,11 +109,16 @@ function LoginForm() {
   }
 
   async function handleMagicLink() {
-    if (!emailValid || busy) return;
-    setBusy(true);
+    if (busy !== null) return;
+    if (!emailValid) {
+      setHint("Enter a valid email address and we'll send you a sign-in link.");
+      return;
+    }
+    setHint(null);
+    setBusy("magic");
     setError(null);
     const result = await signInWithMagicLink({ email: email.trim(), next });
-    setBusy(false);
+    setBusy(null);
     if (result.ok) {
       setMode("magic-sent");
       setCooldown(RESEND_COOLDOWN_S);
@@ -120,7 +136,7 @@ function LoginForm() {
   }
 
   return (
-    <main className="flex min-h-dvh flex-col items-center justify-center bg-gradient-to-b from-muted/60 to-background px-4 py-12">
+    <main className="flex min-h-dvh flex-col items-center justify-start bg-gradient-to-b from-muted/60 to-background px-4 pt-[12vh] pb-12 sm:justify-center sm:py-12">
       <div className="mb-8 flex flex-col items-center gap-2 text-center">
         <BrandMark size={44} />
         <p className="font-display mt-1 text-lg text-muted-foreground">Sell in the open.</p>
@@ -143,7 +159,7 @@ function LoginForm() {
               <Button
                 variant="secondary"
                 onClick={handleMagicLink}
-                disabled={busy || cooldown > 0}
+                disabled={busy !== null || cooldown > 0}
                 className="h-11 min-h-[44px]"
               >
                 {cooldown > 0 ? `Resend link (${cooldown}s)` : "Resend link"}
@@ -157,10 +173,13 @@ function LoginForm() {
               </button>
             </div>
           ) : (
-            <form onSubmit={handleSignIn} className="space-y-4" noValidate={false}>
+            <form onSubmit={handleSignIn} className="space-y-4" noValidate>
               {deactivated && (
                 <Alert variant="destructive">
-                  <AlertDescription>Your account was deactivated</AlertDescription>
+                  <AlertDescription>
+                    Your account was deactivated. Ask your workspace admin to
+                    reactivate it.
+                  </AlertDescription>
                 </Alert>
               )}
               {error && (
@@ -175,11 +194,13 @@ function LoginForm() {
                   id="email"
                   type="email"
                   autoComplete="email"
-                  autoFocus
                   placeholder="you@company.com"
                   value={email}
-                  onChange={(event) => setEmail(event.target.value)}
-                  disabled={busy}
+                  onChange={(event) => {
+                    setEmail(event.target.value);
+                    setHint(null);
+                  }}
+                  disabled={busy !== null}
                   className="h-11"
                 />
               </div>
@@ -194,37 +215,64 @@ function LoginForm() {
                     autoComplete="current-password"
                     placeholder="Your password"
                     value={password}
-                    onChange={(event) => setPassword(event.target.value)}
-                    disabled={busy}
+                    onChange={(event) => {
+                      setPassword(event.target.value);
+                      setHint(null);
+                    }}
+                    disabled={busy !== null}
                     className="h-11 pr-12"
                   />
                   <Button
                     type="button"
                     variant="ghost"
                     size="icon"
-                    className="absolute right-1 top-1/2 h-9 w-9 -translate-y-1/2"
+                    className="absolute right-0 top-1/2 h-11 w-11 -translate-y-1/2"
                     onClick={() => setShowPassword((v) => !v)}
                     aria-label={showPassword ? "Hide password" : "Show password"}
                     tabIndex={-1}
                   >
-                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                   </Button>
                 </div>
               </div>
 
-              <Button type="submit" className="h-11 w-full min-h-[44px]" disabled={!canSubmit}>
-                {busy ? "Signing in…" : "Sign in"}
+              <Button
+                type="submit"
+                className="h-11 w-full min-h-[44px] disabled:opacity-100"
+                disabled={busy !== null}
+              >
+                {busy === "password" ? (
+                  <>
+                    <Loader2 className="animate-spin" aria-hidden />
+                    Signing in…
+                  </>
+                ) : (
+                  "Sign in"
+                )}
               </Button>
 
               <Button
                 type="button"
                 variant="secondary"
-                className="h-11 w-full min-h-[44px]"
+                className="h-11 w-full min-h-[44px] disabled:opacity-100"
                 onClick={handleMagicLink}
-                disabled={!emailValid || busy}
+                disabled={busy !== null}
               >
-                Send me a magic link
+                {busy === "magic" ? (
+                  <>
+                    <Loader2 className="animate-spin" aria-hidden />
+                    Sending link…
+                  </>
+                ) : (
+                  "Send me a magic link"
+                )}
               </Button>
+
+              {hint && (
+                <p className="text-center text-sm text-muted-foreground" role="status">
+                  {hint}
+                </p>
+              )}
             </form>
           )}
         </CardContent>
