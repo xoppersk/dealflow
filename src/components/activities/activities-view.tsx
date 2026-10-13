@@ -133,7 +133,7 @@ export function ActivitiesView({
       <div
         role="tablist"
         aria-label="Activity views"
-        className="inline-flex items-center gap-1 rounded-[2px] border border-border bg-muted/50 p-1"
+        className="flex w-full items-center gap-1 rounded-[2px] border border-border bg-muted/50 p-1 sm:inline-flex sm:w-auto"
       >
         {VIEW_TABS.map((tab) => {
           const count = counts[tab.value];
@@ -146,14 +146,14 @@ export function ActivitiesView({
               type="button"
               onClick={() => setView(tab.value)}
               className={cn(
-                "flex cursor-pointer items-center gap-2 rounded-[2px] px-4 py-1.5 text-sm font-medium transition-colors",
+                "flex min-w-0 flex-auto cursor-pointer items-center justify-center gap-1 whitespace-nowrap rounded-[2px] px-1.5 py-3 text-sm font-medium transition-colors sm:flex-none sm:gap-2 sm:px-4 sm:py-1.5",
                 active ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground",
               )}
             >
               {tab.label}
               <Badge
                 variant={tab.value === "overdue" && count > 0 ? "destructive" : "secondary"}
-                className="tabular-nums"
+                className="shrink-0 px-1.5 tabular-nums sm:px-2.5"
               >
                 {count}
               </Badge>

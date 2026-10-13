@@ -45,7 +45,7 @@ export function FilterBar({ filters, onChange, team }: FilterBarProps) {
           placeholder="Search deals or subjects…"
           value={filters.q}
           onChange={(e) => onChange({ ...filters, q: e.target.value })}
-          className="pl-9"
+          className="pl-9 max-sm:min-h-11"
           aria-label="Search activities"
         />
       </div>
@@ -54,7 +54,7 @@ export function FilterBar({ filters, onChange, team }: FilterBarProps) {
           value={filters.type}
           onValueChange={(v) => onChange({ ...filters, type: v as ActivityFilters["type"] })}
         >
-          <SelectTrigger className="w-[130px]" aria-label="Filter by type">
+          <SelectTrigger className="w-[130px] max-sm:min-h-11" aria-label="Filter by type">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -69,7 +69,7 @@ export function FilterBar({ filters, onChange, team }: FilterBarProps) {
           value={filters.ownerId}
           onValueChange={(v) => onChange({ ...filters, ownerId: v })}
         >
-          <SelectTrigger className="w-[150px]" aria-label="Filter by owner">
+          <SelectTrigger className="w-[150px] max-sm:min-h-11" aria-label="Filter by owner">
             <SelectValue placeholder="All owners" />
           </SelectTrigger>
           <SelectContent>
@@ -85,6 +85,7 @@ export function FilterBar({ filters, onChange, team }: FilterBarProps) {
           <Button
             variant="ghost"
             size="icon"
+            className="max-sm:min-h-11 max-sm:min-w-11"
             onClick={() => onChange({ type: "all", ownerId: "all", q: "" })}
             aria-label="Clear filters"
           >
