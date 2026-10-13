@@ -72,10 +72,10 @@ export default async function DashboardPage() {
           Your today view will fill in as the pipeline grows.
         </p>
         <div className="mt-6 flex flex-col gap-2 sm:flex-row">
-          <Button asChild>
+          <Button asChild className="max-sm:min-h-11">
             <Link href="/contacts?create=1">Add your first contact</Link>
           </Button>
-          <Button variant="outline" asChild>
+          <Button variant="outline" asChild className="max-sm:min-h-11">
             <Link href="/settings/import">Import a CSV</Link>
           </Button>
         </div>
