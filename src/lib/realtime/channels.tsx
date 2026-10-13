@@ -13,7 +13,11 @@ import { createClient } from "@/lib/supabase/client";
  * - `workspace:deals`      — postgres_changes on public.deals (all events)
  * - `workspace:activities`  — postgres_changes on public.activities (INSERT)
  * - `workspace:stages`      — postgres_changes on public.pipeline_stages
- * - presence on `workspace:deals` / `deal:<id>` — teammate avatars viewing now
+ * - presence on `workspace:deals:presence` / `deal:<id>` — teammate avatars
+ *   viewing now. Presence MUST use its own topic: `supabase.channel(topic)`
+ *   returns the shared channel for a topic, and supabase-js forbids adding
+ *   `postgres_changes` callbacks after `subscribe()` — sharing the deals
+ *   topic made whichever hook subscribed second throw and killed the board.
  *
  * RLS applies to realtime payloads: subscribers only receive rows their
  * policies allow, so realtime never leaks deals a viewer can't see.
