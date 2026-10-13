@@ -87,7 +87,7 @@ export function CompaniesTable({ currentUserId }: CompaniesTableProps) {
         kicker="Dealflow / Records"
         description="View account context, associated contacts, open pipeline, and relationship history."
         actions={
-          <Button onClick={() => setDialogOpen(true)}>
+          <Button className="max-sm:min-h-11" onClick={() => setDialogOpen(true)}>
             <Plus className="h-4 w-4" />
             New company
           </Button>
@@ -97,7 +97,7 @@ export function CompaniesTable({ currentUserId }: CompaniesTableProps) {
       <div className="relative max-w-md">
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <Input
-          className="pl-9"
+          className="pl-9 max-sm:min-h-11"
           placeholder="Search name or industry…"
           value={q}
           onChange={(e) => setQ(e.target.value)}
@@ -132,7 +132,7 @@ export function CompaniesTable({ currentUserId }: CompaniesTableProps) {
                       title={`No companies match "${q}"`}
                       description="Try a different search."
                       action={
-                        <Button variant="outline" onClick={() => setQ("")}>
+                        <Button variant="outline" className="max-sm:min-h-11" onClick={() => setQ("")}>
                           Clear search
                         </Button>
                       }
@@ -142,7 +142,7 @@ export function CompaniesTable({ currentUserId }: CompaniesTableProps) {
                       title="No companies yet"
                       description="Add your first company to start tracking accounts."
                       action={
-                        <Button onClick={() => setDialogOpen(true)}>
+                        <Button className="max-sm:min-h-11" onClick={() => setDialogOpen(true)}>
                           <Plus className="h-4 w-4" />
                           Add your first company
                         </Button>
@@ -184,11 +184,11 @@ export function CompaniesTable({ currentUserId }: CompaniesTableProps) {
             description={q ? "Try a different search." : "Add your first company to get started."}
             action={
               q ? (
-                <Button variant="outline" onClick={() => setQ("")}>
+                <Button variant="outline" className="max-sm:min-h-11" onClick={() => setQ("")}>
                   Clear search
                 </Button>
               ) : (
-                <Button onClick={() => setDialogOpen(true)}>
+                <Button className="max-sm:min-h-11" onClick={() => setDialogOpen(true)}>
                   <Plus className="h-4 w-4" />
                   Add your first company
                 </Button>
