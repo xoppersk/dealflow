@@ -1,0 +1,203 @@
+/* Dealflow Premium v2 — Daily group screens (D-01 Today, D-02 Pipeline,
+   D-03 Activities). Values extracted from the approved screens
+   (Today.html / Main.html / Activities.html); shared classes live in
+   globals.css — this file carries only what the Daily screens add. */
+
+/* ---------- two-column daily layout (main + 372px side, screens) ---------- */
+.daily-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 372px;
+  gap: 0;
+  align-items: start;
+  flex: 1;
+}
+.daily-main {
+  padding: 26px 24px 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  min-width: 0;
+}
+@media (max-width: 1180px) {
+  .daily-layout { grid-template-columns: minmax(0, 1fr); }
+  .daily-layout .side { border-left: 0; border-top: 1px solid #E4E1D8; }
+}
+
+/* ---------- hero (D-02) ---------- */
+.hero-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 18px;
+}
+.kpi-row { display: flex; gap: 20px; flex-wrap: wrap; }
+.quarter-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--muted);
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  font-family: inherit;
+}
+.quarter-toggle i {
+  width: 7px; height: 7px; border-radius: 4px; background: var(--progress); flex: none;
+}
+.quarter-toggle[aria-pressed="false"] i { background: var(--control); }
+
+/* ---------- flow band section (D-02) ---------- */
+.flow-wrap { display: flex; flex-direction: column; gap: 10px; }
+.legend-dot {
+  width: 10px; height: 10px; border-radius: 2px; background: var(--progress);
+  display: inline-block; flex: none;
+}
+
+/* ---------- "needs a move" strip (D-02) ---------- */
+.needs-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.needs-head h2 { margin: 0; font-size: 15px; font-weight: 600; }
+.needs-head h2 span { font-weight: 400; color: var(--muted); }
+.needs-controls { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.att-row { display: flex; gap: 10px; flex-wrap: wrap; }
+.att-row .att { flex: 1 1 150px; }
+
+/* ---------- board extras (D-02) ---------- */
+.col.drop-over { outline: 2px dashed var(--progress); outline-offset: 6px; border-radius: var(--radius-l); }
+.board-note {
+  display: flex; gap: 8px; align-items: baseline; font-size: 13px;
+  padding: 10px 14px; border-radius: var(--radius-l);
+  background: var(--act-tint); box-shadow: inset 0 0 0 1px var(--act-line); color: var(--ink);
+}
+.req-banner {
+  display: flex; flex-direction: column; gap: 10px;
+  padding: 14px 16px; border-radius: var(--radius-l);
+  background: #FBF4E8; box-shadow: inset 0 0 0 1px #EBD6B3; font-size: 13.5px;
+}
+.req-banner .fields { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.req-banner .fields .in { background: var(--card); }
+
+/* list view (D-02 ?view=list) — .tbl/.tr language, grouped by stage */
+.list-group { overflow: hidden; }
+.list-group .stage-band {
+  display: flex; justify-content: space-between; align-items: baseline;
+  padding: 12px 20px 4px;
+}
+.list-row {
+  grid-template-columns: minmax(170px, 1.15fr) minmax(150px, 1fr) 84px minmax(210px, 1.35fr) 64px 76px;
+  cursor: pointer; width: 100%; text-align: left; background: none; border: 0;
+  border-top: 1px solid var(--rule); font-family: inherit;
+}
+button.list-row:hover { background: var(--card-sunk); }
+.list-head {
+  grid-template-columns: minmax(170px, 1.15fr) minmax(150px, 1fr) 84px minmax(210px, 1.35fr) 64px 76px;
+}
+
+/* ---------- Today (D-01) ---------- */
+.qr {
+  display: grid; grid-template-columns: 92px 30px minmax(0, 1fr) auto;
+  gap: 14px; align-items: center; padding: 15px 20px;
+  border-top: 1px solid var(--rule); font-size: 14px;
+}
+.qr small {
+  display: flex; gap: 7px; align-items: flex-start; font-size: 13px;
+  margin-top: 5px; line-height: 1.45; font-weight: 500;
+}
+.qr small i { flex: none; margin-top: 6px; width: 6px; height: 6px; border-radius: 3px; background: currentColor; }
+.qr.last { border-radius: 0 0 12px 12px; }
+.qv { font-family: var(--font-mono); font-size: 20px; font-weight: 500; line-height: 1; letter-spacing: -0.02em; }
+.ag {
+  display: grid; grid-template-columns: 64px minmax(0, 1fr) auto;
+  gap: 16px; align-items: center; padding: 13px 20px;
+  border-top: 1px solid var(--rule); font-size: 14px;
+}
+.ag small { display: block; font-size: 13px; color: var(--ink-2); margin-top: 3px; }
+.ag.last { background: var(--card-sunk); border-radius: 0 0 12px 12px; }
+.tm {
+  display: inline-grid; place-items: center; height: 28px; border-radius: var(--radius-m);
+  background: #F1EEE6; font-family: var(--font-mono); font-size: 13px; font-weight: 500; line-height: 1;
+}
+.tm.plain { background: var(--card); box-shadow: 0 0 0 1px #E4E1D8; color: var(--on-track); }
+.new-lead-card {
+  padding: 18px; border-radius: var(--radius-l); background: var(--ink); color: #E9EFED;
+  display: flex; flex-direction: column; gap: 12px; font-size: 13px; line-height: 1.5;
+}
+.deals-total {
+  margin-top: 6px; padding: 14px 16px; border-radius: var(--radius-l); background: #F7F6F2;
+  display: flex; justify-content: space-between; align-items: baseline; font-weight: 600;
+}
+.coming-up { padding-top: 18px; border-top: 1px solid var(--rule); display: flex; flex-direction: column; font-size: 13px; line-height: 1.5; color: var(--ink-2); }
+.coming-up .step { grid-template-columns: 76px 1fr; }
+
+/* ---------- Activities (D-03) ---------- */
+.day {
+  display: flex; align-items: center; gap: 10px; padding: 10px 20px;
+  background: var(--card-sunk); border-top: 1px solid var(--rule);
+  font-size: 12px; font-weight: 600; letter-spacing: 0.06em;
+  text-transform: uppercase; color: var(--muted);
+}
+.day.act { background: #FBEEEC; }
+.timeline > div:first-child .day { border-top: 0; border-radius: var(--radius-l) var(--radius-l) 0 0; }
+.daily-layout .side h2 { margin: 0 0 4px; }
+.timeline .ev:last-child { border-radius: 0 0 var(--radius-l) var(--radius-l); }
+.timeline .ev .own { border-radius: 16px; font-size: 11px; }
+.ev.overdue-row { background: #FCF6F5; }
+.log-next-row {
+  display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
+  padding: 10px 12px; background: #EEF5F3; border-radius: var(--radius-l); font-size: 13px;
+}
+.log-next-row .lab-inline {
+  display: inline-flex; align-items: center; gap: 7px; font-weight: 600; color: var(--progress);
+}
+.log-next-row .lab-inline i { width: 6px; height: 6px; border-radius: 3px; background: var(--progress); }
+.wk { display: grid; grid-template-columns: 1fr 1fr; border-radius: var(--radius-l); background: #F7F6F2; overflow: hidden; }
+.wk div { padding: 14px 16px; display: flex; flex-direction: column; justify-content: space-between; gap: 8px; }
+.wk div:nth-child(even) { border-left: 1px solid #E8E5DD; }
+.wk div:nth-child(n + 3) { border-top: 1px solid #E8E5DD; }
+.wk small { font-size: 12px; color: var(--muted); line-height: 1.35; }
+.wk b { font-family: var(--font-mono); font-size: 26px; font-weight: 500; line-height: 1; letter-spacing: -0.02em; }
+.week-head { display: flex; justify-content: space-between; align-items: baseline; }
+.form-error { font-size: 12.5px; color: var(--act); font-weight: 600; }
+
+/* ---------- phone rows (mobile gate): Stuck (.qr) + Your day (.ag) restack ----------
+   Desktop rows are value | monogram | text | action in one line; below 640px the
+   text column collapses to a few words wide, so the rows restack: monogram + text
+   on top, value + action on a second row. Fluid only — desktop is untouched. */
+@media (max-width: 640px) {
+  .qr {
+    grid-template-columns: 30px minmax(0, 1fr) auto;
+    grid-template-areas: "mg text text" "qv qv btn";
+    column-gap: 10px;
+    row-gap: 6px;
+    padding: 13px 14px;
+  }
+  .qr .qv { grid-area: qv; }
+  .qr .mg { grid-area: mg; }
+  .qr > :nth-child(3) { grid-area: text; }
+  .qr .btn { grid-area: btn; justify-self: end; }
+  .ag {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas: "tm btn" "text text";
+    column-gap: 12px;
+    row-gap: 7px;
+    padding: 13px 14px;
+  }
+  .ag .tm { grid-area: tm; justify-self: start; }
+  .ag > :nth-child(2) { grid-area: text; }
+  .ag > :nth-child(3) { grid-area: btn; justify-self: end; }
+}
+
+/* ---------- phone segmented (mobile gate): Activities filter seg ----------
+   The 5-option filter seg is 308px of min-content; at 320px the content
+   column is 272px, so the buttons tighten their padding on small phones. */
+@media (max-width: 480px) {
+  .hero-row .seg button { padding: 0 8px; }
+}
