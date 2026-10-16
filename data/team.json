@@ -1,0 +1,62 @@
+[
+  {
+    "avatarBg": "#17201E",
+    "avatarColor": "#FFFFFF",
+    "email": "sheku@sevynlabs.io",
+    "firstName": "Sheku",
+    "id": "sheku-koroma",
+    "initials": "SK",
+    "name": "Sheku Koroma",
+    "online": true,
+    "openDeals": 3,
+    "openValue": 128000,
+    "openValueLabel": "$128K",
+    "role": "Admin",
+    "you": true
+  },
+  {
+    "avatarBg": "#E7E0F2",
+    "avatarColor": "#17201E",
+    "email": "priya.shah@sevynlabs.io",
+    "firstName": "Priya",
+    "id": "priya-shah",
+    "initials": "PS",
+    "name": "Priya Shah",
+    "online": true,
+    "openDeals": 2,
+    "openValue": 180500,
+    "openValueLabel": "$180.5K",
+    "role": "Rep",
+    "you": false
+  },
+  {
+    "avatarBg": "#D9ECE9",
+    "avatarColor": "#17201E",
+    "email": "maya.jordan@sevynlabs.io",
+    "firstName": "Maya",
+    "id": "maya-jordan",
+    "initials": "MJ",
+    "name": "Maya Jordan",
+    "online": true,
+    "openDeals": 2,
+    "openValue": 108000,
+    "openValueLabel": "$108K",
+    "role": "Rep",
+    "you": false
+  },
+  {
+    "avatarBg": "#F1E1D9",
+    "avatarColor": "#17201E",
+    "email": "andre.ruiz@sevynlabs.io",
+    "firstName": "Andre",
+    "id": "andre-ruiz",
+    "initials": "AR",
+    "name": "Andre Ruiz",
+    "online": false,
+    "openDeals": 1,
+    "openValue": 73000,
+    "openValueLabel": "$73K",
+    "role": "Rep",
+    "you": false
+  }
+]

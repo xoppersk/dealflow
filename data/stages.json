@@ -1,0 +1,62 @@
+[
+  {
+    "id": "new-lead",
+    "name": "New lead",
+    "requires": [
+      "Company, owner"
+    ],
+    "staleLimitDays": 21,
+    "valueSep": 80000,
+    "winChance": 18
+  },
+  {
+    "id": "discovery",
+    "name": "Discovery",
+    "requires": [
+      "A contact and a first meeting"
+    ],
+    "staleLimitDays": 14,
+    "valueSep": 98000,
+    "winChance": 24
+  },
+  {
+    "id": "proposal",
+    "name": "Proposal",
+    "requires": [
+      "Value and expected close date"
+    ],
+    "staleLimitDays": 10,
+    "valueSep": 150000,
+    "winChance": 35
+  },
+  {
+    "id": "negotiation",
+    "name": "Negotiation",
+    "requires": [
+      "Decision maker named"
+    ],
+    "staleLimitDays": 10,
+    "valueSep": 177000,
+    "winChance": 39
+  },
+  {
+    "id": "won",
+    "name": "Won",
+    "requires": [
+      "Signed date and final value"
+    ],
+    "staleLimitDays": 14,
+    "valueSep": 0,
+    "winChance": 100
+  },
+  {
+    "id": "lost",
+    "name": "Lost",
+    "requires": [
+      "A reason from the list"
+    ],
+    "staleLimitDays": 14,
+    "valueSep": 0,
+    "winChance": 0
+  }
+]

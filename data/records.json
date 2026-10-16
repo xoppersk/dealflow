@@ -1,0 +1,818 @@
+{
+  "companiesList": {
+    "atlas-labs": {
+      "healthLabel": "On track",
+      "healthTone": "on-track",
+      "industryLine": "Software · 300 people"
+    },
+    "aurora-biologics": {
+      "healthLabel": "On track",
+      "healthTone": "on-track",
+      "industryLine": "Biotech · 180 people"
+    },
+    "bracken-works": {
+      "healthLabel": "Watch · legal due Thu",
+      "healthTone": "watch",
+      "industryLine": "Manufacturing · 420 people"
+    },
+    "cedar-and-co": {
+      "healthLabel": "On track",
+      "healthTone": "on-track",
+      "industryLine": "Retail · 240 people"
+    },
+    "harborlight": {
+      "healthLabel": "Customer since Feb",
+      "healthTone": "neutral",
+      "industryLine": "Hospitality · 380 people",
+      "mgBg": "#E0EEF0",
+      "mgColor": "#1F5560"
+    },
+    "kestrel-freight": {
+      "healthLabel": "At risk · no next step",
+      "healthTone": "act",
+      "industryLine": "Logistics · 650 people"
+    },
+    "meridian-foods": {
+      "healthLabel": "Watch · stale 16 days",
+      "healthTone": "watch",
+      "industryLine": "Food distribution · 1,200 people"
+    },
+    "solace-energy": {
+      "healthLabel": "On track",
+      "healthTone": "on-track",
+      "industryLine": "Utilities · 900 people"
+    },
+    "vesper-studio": {
+      "healthLabel": "On track",
+      "healthTone": "on-track",
+      "industryLine": "Creative agency · 60 people"
+    }
+  },
+  "companiesListOrder": [
+    "bracken-works",
+    "solace-energy",
+    "meridian-foods",
+    "aurora-biologics",
+    "vesper-studio",
+    "atlas-labs",
+    "kestrel-freight",
+    "cedar-and-co",
+    "harborlight"
+  ],
+  "companyDetails": {
+    "atlas-labs": {
+      "firstContact": "Sep 30",
+      "healthKv": "On track · discovery call Thu",
+      "healthKvTone": "on-track",
+      "healthNote": "Health is “On track” when the open deal has a next step with a future date and a reply inside the stage limit.",
+      "industryFull": "Software",
+      "oneLineTone": "on-track",
+      "sizeLong": "300 people",
+      "sizeShort": "300 people",
+      "website": "[atlas website]"
+    },
+    "aurora-biologics": {
+      "firstContact": "Sep 29",
+      "healthKv": "On track · scope review Fri",
+      "healthKvTone": "on-track",
+      "healthNote": "Health is “On track” when the open deal has a next step with a future date and a reply inside the stage limit.",
+      "industryFull": "Biotech",
+      "oneLineTone": "on-track",
+      "sizeLong": "180 people",
+      "sizeShort": "180 people",
+      "website": "[aurora website]"
+    },
+    "bracken-works": {
+      "city": "Pittsburgh, PA",
+      "firstContact": "Sep 3, via Harborlight",
+      "healthKv": "Watch · one deal, waiting on legal",
+      "healthKvTone": "watch",
+      "healthNote": "Health is “Watch” when the only open deal has a next step due within 3 days that blocks it, and “At risk” when it has none.",
+      "industryFull": "Industrial manufacturing",
+      "oneLineParts": [
+        {
+          "kind": "text",
+          "text": "One open deal worth "
+        },
+        {
+          "kind": "mono",
+          "text": "$141K"
+        },
+        {
+          "kind": "text",
+          "text": " in Negotiation, waiting on legal. Referred by Harborlight in September; three people involved, Jordan Bell decides."
+        }
+      ],
+      "oneLineTone": "watch",
+      "sizeLong": "420 people, 3 plants",
+      "sizeShort": "420 people",
+      "website": "[bracken website]"
+    },
+    "cedar-and-co": {
+      "firstContact": "Sep 24",
+      "healthKv": "On track · intro deck out",
+      "healthKvTone": "on-track",
+      "healthNote": "Health is “On track” when the open deal has a next step with a future date and a reply inside the stage limit.",
+      "industryFull": "Retail",
+      "oneLineTone": "on-track",
+      "sizeLong": "240 people, 12 stores",
+      "sizeShort": "240 people",
+      "website": "[cedar website]"
+    },
+    "harborlight": {
+      "firstContact": "Feb, customer",
+      "healthKv": "Customer since Feb · renews Feb",
+      "healthKvTone": "neutral",
+      "healthNote": "Harborlight is a customer, not an open deal: health follows the renewal, not a next step.",
+      "industryFull": "Hospitality",
+      "oneLineTone": "on-track",
+      "sizeLong": "380 people",
+      "sizeShort": "380 people",
+      "website": "[harborlight website]"
+    },
+    "kestrel-freight": {
+      "firstContact": "Sep 15",
+      "healthKv": "At risk · no next step set",
+      "healthKvTone": "act",
+      "healthNote": "Health is “At risk” when the only open deal has no next step, and “Watch” when its next step is due within 3 days.",
+      "industryFull": "Logistics",
+      "oneLineTone": "act",
+      "sizeLong": "650 people",
+      "sizeShort": "650 people",
+      "website": "[kestrel website]"
+    },
+    "meridian-foods": {
+      "firstContact": "Sep 8",
+      "healthKv": "Watch · stale 16 days, no reply",
+      "healthKvTone": "watch",
+      "healthNote": "Health is “Watch” when a deal has had no reply for longer than its stage limit (Proposal: 10 days), and “At risk” when it has no next step.",
+      "industryFull": "Food distribution",
+      "oneLineTone": "watch",
+      "sizeLong": "1,200 people, 6 sites",
+      "sizeShort": "1,200 people",
+      "website": "[meridian website]"
+    },
+    "solace-energy": {
+      "firstContact": "Sep 22",
+      "healthKv": "On track · proposal with the CFO",
+      "healthKvTone": "on-track",
+      "healthNote": "Health is “On track” when the open deal has a next step with a future date and a reply inside the stage limit.",
+      "industryFull": "Utilities",
+      "oneLineTone": "on-track",
+      "sizeLong": "900 people",
+      "sizeShort": "900 people",
+      "website": "[solace website]"
+    },
+    "vesper-studio": {
+      "firstContact": "Sep 18",
+      "healthKv": "On track · terms due tomorrow",
+      "healthKvTone": "on-track",
+      "healthNote": "Health is “On track” when the open deal has a next step with a future date and a reply inside the stage limit.",
+      "industryFull": "Creative agency",
+      "oneLineTone": "on-track",
+      "sizeLong": "60 people",
+      "sizeShort": "60 people",
+      "website": "[vesper website]"
+    }
+  },
+  "companyPeopleDates": {
+    "bracken-works": {
+      "jordan-bell": "Oct 5",
+      "marcus-hale": "Sep 25",
+      "rachel-stone": "Oct 2"
+    }
+  },
+  "contactDetails": {
+    "avery-lewis": {
+      "dealRoleShort": "Customer",
+      "history": [
+        {
+          "date": "Oct 4",
+          "detail": "Renews in Feb",
+          "ownerId": "maya-jordan",
+          "rest": " · renewal check-in",
+          "title": "Call"
+        },
+        {
+          "date": "Sep 3",
+          "detail": "Referred Bracken Works to us",
+          "ownerId": "maya-jordan",
+          "rest": " of Jordan Bell",
+          "title": "Introduction"
+        }
+      ],
+      "metThrough": "Customer since Feb",
+      "prefers": "Quarterly reviews",
+      "roleOnDeal": "Customer"
+    },
+    "ben-ortiz": {
+      "dealRoleShort": "Decides",
+      "history": [
+        {
+          "date": "Oct 2",
+          "detail": "Reading the intro deck",
+          "ownerId": "sheku-koroma",
+          "rest": " · intro deck sent",
+          "title": "Email"
+        },
+        {
+          "date": "Sep 24",
+          "detail": "West Coast rollout, 12 stores",
+          "ownerId": "sheku-koroma",
+          "rest": ", 25 min",
+          "title": "Call"
+        }
+      ],
+      "metThrough": "Cedar & Co inbound",
+      "prefers": "Email",
+      "roleOnDeal": "Decision maker"
+    },
+    "clara-nguyen": {
+      "dealRoleShort": "Decides",
+      "history": [
+        {
+          "date": "Oct 2",
+          "detail": "Reviews the proposal Mon, Oct 12",
+          "ownerId": "andre-ruiz",
+          "rest": " · proposal sent",
+          "title": "Email"
+        },
+        {
+          "date": "Sep 30",
+          "detail": "Field team scope and sites",
+          "ownerId": "andre-ruiz",
+          "rest": ", 25 min",
+          "title": "Call"
+        }
+      ],
+      "metThrough": "Solace Energy inbound",
+      "prefers": "Email summaries",
+      "roleOnDeal": "Decision maker"
+    },
+    "ines-moreau": {
+      "dealRoleShort": "New lead",
+      "history": [
+        {
+          "date": "Oct 6",
+          "detail": "Ops Director at Halden Outdoor; asked about rollout pricing",
+          "ownerId": "sheku-koroma",
+          "rest": " enquiry",
+          "title": "Web form"
+        }
+      ],
+      "metThrough": "Web form, Oct 6",
+      "prefers": "Email",
+      "roleOnDeal": "New lead"
+    },
+    "jordan-bell": {
+      "dealRoleShort": "Decides",
+      "history": [
+        {
+          "date": "Oct 5",
+          "detail": "Jordan asked to bring their counsel",
+          "ownerId": "priya-shah",
+          "rest": " for the legal review",
+          "title": "Meeting booked"
+        },
+        {
+          "date": "Oct 1",
+          "detail": "Verbal yes on scope and price. “Legal will want a look first.”",
+          "ownerId": "priya-shah",
+          "rest": ", 31 min",
+          "title": "Call"
+        },
+        {
+          "date": "Sep 25",
+          "detail": "Wants services split into two phases",
+          "ownerId": "priya-shah",
+          "rest": " · proposal walkthrough, 48 min",
+          "title": "Call"
+        },
+        {
+          "date": "Sep 3",
+          "detail": "“Jordan is rebuilding their ops stack this year.”",
+          "ownerId": "maya-jordan",
+          "rest": " from Avery Lewis, Harborlight",
+          "title": "Introduction"
+        }
+      ],
+      "metThrough": "Avery Lewis, Harborlight",
+      "phone": "+1 412 555 0148",
+      "prefers": "Calls before 10:00, short emails",
+      "roleOnDeal": "Decision maker",
+      "standingParts": [
+        {
+          "kind": "text",
+          "text": "Jordan decides on "
+        },
+        {
+          "href": "/app/deals/bracken-works",
+          "kind": "link",
+          "text": "Bracken Works · Annual operations plan"
+        },
+        {
+          "kind": "text",
+          "text": " ("
+        },
+        {
+          "kind": "mono",
+          "text": "$141K"
+        },
+        {
+          "kind": "text",
+          "text": ", Negotiation). You’ve spoken 9 times in 30 days. Next: legal review "
+        },
+        {
+          "kind": "bold",
+          "text": "Thu, Oct 8 at 14:00"
+        },
+        {
+          "kind": "text",
+          "text": " with Rachel Stone."
+        }
+      ]
+    },
+    "lena-park": {
+      "dealRoleShort": "Decides",
+      "history": [
+        {
+          "date": "Oct 5",
+          "detail": "Revised terms walkthrough",
+          "ownerId": "sheku-koroma",
+          "rest": " booked for 13:30 today",
+          "title": "Call"
+        },
+        {
+          "date": "Sep 27",
+          "detail": "Agency partnership terms, first version",
+          "ownerId": "sheku-koroma",
+          "rest": " · terms sent",
+          "title": "Email"
+        }
+      ],
+      "metThrough": "Vesper Studio website",
+      "prefers": "Calls",
+      "roleOnDeal": "Decision maker"
+    },
+    "marcus-hale": {
+      "dealRoleShort": "Champion",
+      "history": [
+        {
+          "date": "Sep 25",
+          "detail": "Runs the pilot team day to day",
+          "ownerId": "priya-shah",
+          "rest": " · proposal walkthrough, 48 min",
+          "title": "Call"
+        },
+        {
+          "date": "Sep 18",
+          "detail": "Uses it daily with his team",
+          "ownerId": "priya-shah",
+          "rest": " · operations dashboard",
+          "title": "Demo"
+        }
+      ],
+      "metThrough": "Jordan Bell, Bracken Works",
+      "prefers": "Short calls, in-app walkthroughs",
+      "roleOnDeal": "Champion"
+    },
+    "morgan-reed": {
+      "dealRoleShort": "Decides",
+      "history": [
+        {
+          "date": "Sep 20",
+          "detail": "Multi-site license proposal for 6 sites",
+          "ownerId": "maya-jordan",
+          "rest": "",
+          "title": "Proposal sent"
+        },
+        {
+          "date": "Sep 18",
+          "detail": "Pricing for 6 sites",
+          "ownerId": "maya-jordan",
+          "rest": ", 35 min",
+          "title": "Call"
+        }
+      ],
+      "metThrough": "Trade show, August",
+      "prefers": "Email",
+      "roleOnDeal": "Decision maker"
+    },
+    "rachel-stone": {
+      "dealRoleShort": "Legal",
+      "history": [
+        {
+          "date": "Oct 2",
+          "detail": "3 clauses marked: liability cap, data retention, termination notice",
+          "ownerId": "priya-shah",
+          "rest": " · redlines received",
+          "title": "Email"
+        },
+        {
+          "date": "Sep 25",
+          "detail": "Joined for the legal questions at the end",
+          "ownerId": "priya-shah",
+          "rest": " · proposal walkthrough, 48 min",
+          "title": "Call"
+        }
+      ],
+      "metThrough": "Jordan Bell, Bracken Works",
+      "prefers": "Email, redlines in Word",
+      "roleOnDeal": "Legal sign-off"
+    },
+    "raj-mehta": {
+      "dealRoleShort": "Decides",
+      "history": [
+        {
+          "date": "Oct 6",
+          "detail": "Joins the discovery call Thu",
+          "ownerId": "maya-jordan",
+          "rest": " · intro",
+          "title": "Email"
+        },
+        {
+          "date": "Oct 3",
+          "detail": "Enterprise expansion covers 3 regions",
+          "ownerId": "maya-jordan",
+          "rest": ", 20 min",
+          "title": "Call"
+        }
+      ],
+      "metThrough": "Atlas Labs inbound",
+      "prefers": "Email",
+      "roleOnDeal": "Decision maker"
+    },
+    "selin-arslan": {
+      "dealRoleShort": "Decides",
+      "history": [
+        {
+          "date": "Oct 1",
+          "detail": "Scope review booked for Fri",
+          "ownerId": "sheku-koroma",
+          "rest": " · pilot scope",
+          "title": "Call"
+        },
+        {
+          "date": "Sep 29",
+          "detail": "Lab equipment pilot, one site",
+          "ownerId": "sheku-koroma",
+          "rest": " · pilot brief sent",
+          "title": "Email"
+        }
+      ],
+      "metThrough": "Aurora Biologics inbound",
+      "prefers": "Calls",
+      "roleOnDeal": "Decision maker"
+    },
+    "tom-becker": {
+      "dealRoleShort": "Decides",
+      "history": [
+        {
+          "date": "Sep 29",
+          "detail": "No next step was set on the call",
+          "ownerId": "priya-shah",
+          "rest": " · logistics contract scoping",
+          "title": "Call"
+        },
+        {
+          "date": "Sep 22",
+          "detail": "Logistics contract overview",
+          "ownerId": "priya-shah",
+          "rest": " · intro deck sent",
+          "title": "Email"
+        }
+      ],
+      "metThrough": "Kestrel Freight inbound",
+      "prefers": "Calls",
+      "roleOnDeal": "Decision maker"
+    }
+  },
+  "contactsList": {
+    "avery-lewis": {
+      "lastTouchDate": "Oct 4",
+      "openValue": null,
+      "ownerId": "maya-jordan",
+      "relationshipLabel": "Strong",
+      "relationshipNote": "Customer · renews Feb",
+      "relationshipTone": "strong"
+    },
+    "ben-ortiz": {
+      "lastTouchDate": "Oct 2",
+      "openValue": 28000,
+      "ownerId": "sheku-koroma",
+      "relationshipLabel": "Good",
+      "relationshipNote": "Reading the intro deck",
+      "relationshipTone": "good"
+    },
+    "clara-nguyen": {
+      "lastTouchDate": "Oct 2",
+      "openValue": 73000,
+      "ownerId": "andre-ruiz",
+      "relationshipLabel": "Good",
+      "relationshipNote": "Reviews proposal Mon",
+      "relationshipTone": "good"
+    },
+    "ines-moreau": {
+      "lastTouchDate": "Oct 6",
+      "lastTouchFlag": "New lead",
+      "lastTouchFlagTone": "ok",
+      "openValue": null,
+      "ownerId": "sheku-koroma",
+      "relationshipLabel": "New",
+      "relationshipNote": "Web form, 2 h ago",
+      "relationshipTone": "new"
+    },
+    "jordan-bell": {
+      "lastTouchDate": "Oct 5",
+      "lastTouchFlag": "Follow-up Thu",
+      "lastTouchFlagTone": "watch",
+      "openValue": 141000,
+      "ownerId": "priya-shah",
+      "relationshipLabel": "Strong",
+      "relationshipNote": "9 touches in 30 days",
+      "relationshipTone": "strong"
+    },
+    "lena-park": {
+      "lastTouchDate": "Oct 5",
+      "lastTouchFlag": "Call today",
+      "lastTouchFlagTone": "ok",
+      "openValue": 48000,
+      "ownerId": "sheku-koroma",
+      "relationshipLabel": "Strong",
+      "relationshipNote": "Call today 13:30",
+      "relationshipTone": "strong"
+    },
+    "marcus-hale": {
+      "everyoneOnly": true,
+      "lastTouchDate": "Sep 25",
+      "openValue": 141000,
+      "ownerId": "priya-shah",
+      "relationshipLabel": "Good",
+      "relationshipNote": "Champion · uses it daily",
+      "relationshipTone": "good"
+    },
+    "morgan-reed": {
+      "cooling": true,
+      "lastTouchDate": "Sep 20",
+      "lastTouchFlag": "Stale",
+      "lastTouchFlagTone": "watch",
+      "openValue": 64000,
+      "ownerId": "maya-jordan",
+      "relationshipLabel": "Cooling",
+      "relationshipNote": "No reply in 16 days",
+      "relationshipTone": "cooling"
+    },
+    "rachel-stone": {
+      "everyoneOnly": true,
+      "lastTouchDate": "Oct 2",
+      "openValue": 141000,
+      "ownerId": "priya-shah",
+      "relationshipLabel": "Good",
+      "relationshipNote": "Sent redlines Oct 2",
+      "relationshipTone": "good"
+    },
+    "raj-mehta": {
+      "lastTouchDate": "Oct 6",
+      "openValue": 44000,
+      "ownerId": "maya-jordan",
+      "relationshipLabel": "New",
+      "relationshipNote": "Joins call Thu",
+      "relationshipTone": "new"
+    },
+    "selin-arslan": {
+      "lastTouchDate": "Oct 1",
+      "openValue": 52000,
+      "ownerId": "sheku-koroma",
+      "relationshipLabel": "Good",
+      "relationshipNote": "Scope review Fri",
+      "relationshipTone": "good"
+    },
+    "tom-becker": {
+      "cooling": true,
+      "lastTouchDate": "Sep 29",
+      "lastTouchFlag": "No next step",
+      "lastTouchFlagTone": "act",
+      "openValue": 39500,
+      "ownerId": "priya-shah",
+      "relationshipLabel": "Cooling",
+      "relationshipNote": "No contact since Sep 29",
+      "relationshipTone": "cooling"
+    }
+  },
+  "contactsListOrder": [
+    "jordan-bell",
+    "lena-park",
+    "morgan-reed",
+    "clara-nguyen",
+    "selin-arslan",
+    "raj-mehta",
+    "tom-becker",
+    "ben-ortiz",
+    "avery-lewis",
+    "ines-moreau"
+  ],
+  "dealPages": {
+    "atlas-labs-enterprise-expansion": {
+      "activities": [
+        {
+          "date": "Oct 6",
+          "detail": "Raj Mehta, IT Lead, joins Thu",
+          "ownerId": "maya-jordan",
+          "subject": "discovery call proposed",
+          "title": "Email"
+        },
+        {
+          "date": "Oct 3",
+          "detail": "Enterprise expansion covers 3 regions",
+          "ownerId": "maya-jordan",
+          "subject": "intro, 20 min",
+          "title": "Call"
+        }
+      ]
+    },
+    "aurora-biologics-lab-equipment-pilot": {
+      "activities": [
+        {
+          "date": "Oct 1",
+          "detail": "Selin Arslan, Lab Manager",
+          "ownerId": "sheku-koroma",
+          "subject": "pilot scope",
+          "title": "Call"
+        },
+        {
+          "date": "Sep 29",
+          "detail": "Lab equipment pilot, one site",
+          "ownerId": "sheku-koroma",
+          "subject": "pilot brief sent",
+          "title": "Email"
+        }
+      ]
+    },
+    "bracken-works-annual-operations-plan": {
+      "activities": [
+        {
+          "date": "Oct 5",
+          "detail": "Legal review with Jordan Bell and Rachel Stone, General Counsel",
+          "ownerId": "priya-shah",
+          "subject": "Thu, Oct 8, 14:00",
+          "title": "Meeting booked"
+        },
+        {
+          "date": "Oct 2",
+          "detail": "3 clauses marked. Everything else in the order form accepted.",
+          "ownerId": "priya-shah",
+          "subject": "redlines received from Rachel Stone",
+          "title": "Email"
+        },
+        {
+          "date": "Oct 1",
+          "detail": "Verbal yes on scope and price from Jordan Bell",
+          "ownerId": "priya-shah",
+          "title": "Moved to Negotiation"
+        },
+        {
+          "date": "Sep 25",
+          "detail": "Asked to split services into two phases. Accepted.",
+          "ownerId": "priya-shah",
+          "subject": "proposal walkthrough, 48 min",
+          "title": "Call"
+        }
+      ],
+      "nextStepDueHeader": "Due Thu, Oct 8 · in 2 days",
+      "nextStepSentence": "Confirm legal redlines with Jordan Bell",
+      "nextStepWhy": "Their counsel returned 3 changes on Oct 2: liability cap, data retention and the termination notice. The contract can’t be sent until Jordan signs off. The review is booked for Thu at 14:00.",
+      "peopleSub": {
+        "jordan-bell": {
+          "chipLabel": "Thu",
+          "chipTone": "watch",
+          "sub": "Decides · last talked Oct 5"
+        },
+        "marcus-hale": {
+          "sub": "Champion · uses it daily"
+        },
+        "rachel-stone": {
+          "sub": "Legal sign-off"
+        }
+      },
+      "compositionNote": "in 2 phases"
+    },
+    "cedar-and-co-west-coast-rollout": {
+      "activities": [
+        {
+          "date": "Sep 30",
+          "detail": "Ben Ortiz is reading it",
+          "ownerId": "sheku-koroma",
+          "subject": "intro deck sent",
+          "title": "Email"
+        },
+        {
+          "date": "Sep 24",
+          "detail": "West Coast rollout, 12 stores",
+          "ownerId": "sheku-koroma",
+          "subject": "intro, 25 min",
+          "title": "Call"
+        }
+      ]
+    },
+    "kestrel-freight-logistics-contract": {
+      "activities": [
+        {
+          "date": "Sep 29",
+          "detail": "No next step was set on the call.",
+          "ownerId": "priya-shah",
+          "subject": "logistics contract scoping",
+          "title": "Call"
+        },
+        {
+          "date": "Sep 22",
+          "detail": "Tom Becker, Logistics Manager",
+          "ownerId": "priya-shah",
+          "subject": "intro deck sent",
+          "title": "Email"
+        }
+      ]
+    },
+    "meridian-foods-multi-site-license": {
+      "activities": [
+        {
+          "date": "Sep 20",
+          "detail": "",
+          "ownerId": "maya-jordan",
+          "subject": "to Morgan Reed, CFO",
+          "title": "Proposal sent"
+        },
+        {
+          "date": "Sep 18",
+          "detail": "",
+          "ownerId": "maya-jordan",
+          "subject": "35 min · pricing for 6 sites",
+          "title": "Call"
+        },
+        {
+          "act": true,
+          "date": "Sep 27",
+          "detail": "",
+          "ownerId": "maya-jordan",
+          "subject": "follow up on the proposal",
+          "title": "Task overdue"
+        }
+      ]
+    },
+    "solace-energy-field-team-package": {
+      "activities": [
+        {
+          "date": "Oct 6",
+          "detail": "CFO reviews the proposal Mon, Oct 12",
+          "ownerId": "maya-jordan",
+          "title": "Moved to Proposal"
+        },
+        {
+          "date": "Oct 2",
+          "detail": "Clara Nguyen, CFO",
+          "ownerId": "andre-ruiz",
+          "subject": "proposal sent",
+          "title": "Email"
+        }
+      ]
+    },
+    "vesper-studio-agency-partnership": {
+      "activities": [
+        {
+          "date": "Oct 5",
+          "detail": "Revised terms walkthrough with Lena Park",
+          "ownerId": "sheku-koroma",
+          "subject": "booked today 13:30",
+          "title": "Call"
+        },
+        {
+          "date": "Sep 27",
+          "detail": "Lena Park, COO",
+          "ownerId": "sheku-koroma",
+          "subject": "terms v1 sent",
+          "title": "Email"
+        }
+      ]
+    }
+  },
+  "staleNotice": {
+    "meridian-foods-multi-site-license": {
+      "askLabel": "Ask Maya for an update",
+      "body": "Proposals that win here usually get a reply within 7 days. After 21 days without one, 4 out of 5 were lost. The follow-up task was due Sep 27.",
+      "daysNoReply": 16,
+      "draftLabel": "Draft a follow-up to Morgan",
+      "headline": "Morgan Reed hasn’t answered the proposal sent Sep 20.",
+      "label": "Stale · 16 days with no reply",
+      "meterFilled": 16,
+      "meterTotal": 21,
+      "headerSuffix": "Proposal since Sep 20"
+    }
+  },
+  "extraCompanies": {
+    "halden-outdoor": {
+      "name": "Halden Outdoor",
+      "initials": "HO",
+      "mgBg": "#E9EEDF",
+      "mgColor": "#44562A"
+    }
+  }
+}

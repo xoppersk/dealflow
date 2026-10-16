@@ -1,0 +1,269 @@
+{
+    "auditExtra": [
+        {
+            "dayLabel": "This week",
+            "detail": "Invite expires Oct 12.",
+            "id": "audit-invite-dana",
+            "ownerId": "sheku-koroma",
+            "subject": "Invited dana.cole@sevynlabs.io as a Rep",
+            "timeLabel": "Oct 5",
+            "type": "Invite"
+        },
+        {
+            "dayLabel": "Today",
+            "detail": "From Discovery \u00b7 2 min ago.",
+            "id": "audit-solace-move",
+            "ownerId": "maya-jordan",
+            "subject": "Moved Solace Energy to Proposal",
+            "timeLabel": "09:58",
+            "type": "Move"
+        }
+    ],
+    "importScreen": {
+        "cantImportNote": "Rows 12, 27, 40 and 58 have no email and no company. Fix them in the file and upload again, or leave them out.",
+        "cantImportTitle": "Can\u2019t import \u00b7 4",
+        "commitLabel": "Import 51 and merge 8",
+        "counts": [
+            {
+                "label": "New contacts",
+                "note": "Ready to add",
+                "value": 51
+            },
+            {
+                "label": "Already in Dealflow",
+                "note": "Merge or keep both",
+                "value": 9
+            },
+            {
+                "act": true,
+                "label": "Can\u2019t import",
+                "note": "No email or company",
+                "value": 4
+            },
+            {
+                "label": "New companies",
+                "note": "Made from the company column",
+                "value": 22
+            }
+        ],
+        "currentStep": 3,
+        "doneNote": "51 contacts and 22 companies added. 8 contacts merged; 1 kept separate. The import is logged under your name and can be undone for 24 hours.",
+        "doneTitle": "Import complete",
+        "duplicates": [
+            {
+                "defaultChoice": "merge",
+                "fromName": "Morgan Reed",
+                "fromNote": "From file \u00b7 CFO, Meridian Foods",
+                "id": "morgan-reed",
+                "matchCompanyId": "meridian-foods",
+                "matchName": "Morgan Reed",
+                "matchNote": "On Meridian Foods \u00b7 $64K open deal",
+                "matchVerb": "Matches"
+            },
+            {
+                "defaultChoice": "merge",
+                "fromName": "Tom Becker",
+                "fromNote": "From file \u00b7 new mobile number",
+                "id": "tom-becker",
+                "matchCompanyId": "kestrel-freight",
+                "matchName": "Tom Becker",
+                "matchNote": "Kestrel Freight \u00b7 keeps owner Priya",
+                "matchVerb": "Matches"
+            },
+            {
+                "defaultChoice": "keep",
+                "fromName": "J. Bell",
+                "fromNote": "From file \u00b7 Bracken Works, no email",
+                "id": "j-bell",
+                "matchCompanyId": "bracken-works",
+                "matchName": "Jordan Bell",
+                "matchNote": "Same company and phone",
+                "matchVerb": "Probably"
+            }
+        ],
+        "duplicatesShowing": "Showing 3",
+        "duplicatesTitle": "Possible duplicates \u00b7 9",
+        "file": "trade-show-leads.csv",
+        "ledeSuffix": "rows read. Nothing is saved until you import.",
+        "rowsRead": 64,
+        "steps": [
+            "1 \u00b7 Upload",
+            "2 \u00b7 Match columns",
+            "3 \u00b7 Check",
+            "4 \u00b7 Import"
+        ],
+        "title": "Import contacts",
+        "whenYouImport": [
+            "51 contacts and 22 companies are added, owned by you. 8 contacts are merged; 1 is kept separate.",
+            "No deals are created. Merges never change a deal\u2019s owner or stage.",
+            "The import is logged under your name and can be undone for 24 hours."
+        ]
+    },
+    "reports": {
+        "byOwner": [
+            {
+                "calls": 4,
+                "personId": "priya-shah",
+                "stuck": "1 stuck",
+                "won": 2
+            },
+            {
+                "calls": 3,
+                "personId": "sheku-koroma",
+                "won": 3
+            },
+            {
+                "calls": 5,
+                "personId": "maya-jordan",
+                "stuck": "1 stuck",
+                "won": 3
+            },
+            {
+                "calls": 2,
+                "personId": "andre-ruiz",
+                "won": 1
+            }
+        ],
+        "daysNote": "Fastest 26 days, slowest 39. Bracken Works is on day 33 since first touch; signing by Oct 30 would make it 57.",
+        "defaultPeriod": "This quarter",
+        "headline": [
+            {
+                "label": "Open pipeline",
+                "note": "8 deals, any stage before Won",
+                "value": "$489.5K"
+            },
+            {
+                "accent": true,
+                "label": "Weighted forecast",
+                "note": "Each deal \u00d7 its stage\u2019s win chance",
+                "value": "$156.6K"
+            },
+            {
+                "label": "Win rate",
+                "note": "9 won of 29 closed this quarter",
+                "value": "31%"
+            },
+            {
+                "label": "Time to win",
+                "note": "Average for the 9 won, first touch to signed",
+                "unit": " days",
+                "value": "34"
+            }
+        ],
+        "lede": "Quarter to date, Jul 1 \u2013 Oct 6. Every number says how it\u2019s counted.",
+        "periods": [
+            "This month",
+            "This quarter",
+            "Last 12 months"
+        ],
+        "stageBarsNote": "Only Negotiation grew since September (+$12K). The other three stages shrank by $27.5K together: deals moved forward or were lost faster than new ones came in.",
+        "teamTotal": {
+            "calls": 14,
+            "open": 8,
+            "value": "$489.5K",
+            "won": 9
+        },
+        "daysBarHeightsPct": [
+            66,
+            79,
+            85,
+            87,
+            87,
+            90,
+            92,
+            97,
+            100
+        ]
+    },
+    "stagesScreen": {
+        "closedLine": "Won needs a signed date and final value. Lost needs a reason from the list.",
+        "definition": "Win chance is the share of deals that reached Won after entering the stage, over the last 12 months. You can override it, and the forecast then says \u201cmanual\u201d.",
+        "ifYouSave": [
+            "Proposal deals go stale after 10 days instead of 14.",
+            "Meridian Foods stays stale (16 days). Solace Energy would go stale on Oct 16 if nothing moves.",
+            "Owners get one email when a deal turns stale."
+        ],
+        "lede": "Four open stages, then Won or Lost. What a deal needs to enter each one, and when it counts as stale.",
+        "proposalStaleDraftDays": 10,
+        "proposalStaleSavedDays": 14,
+        "staleDisplay": {
+            "discovery": "14 days",
+            "negotiation": "10 days",
+            "new-lead": "21 days"
+        }
+    },
+    "teamScreen": {
+        "emails": {
+            "andre-ruiz": "andre.ruiz@sevynlabs.io",
+            "maya-jordan": "maya.jordan@sevynlabs.io",
+            "priya-shah": "priya.shah@sevynlabs.io",
+            "sheku-koroma": "sheku@sevynlabs.io"
+        },
+        "invite": {
+            "email": "dana.cole@sevynlabs.io",
+            "note": "Invited Oct 5 by Sheku \u00b7 expires Oct 12",
+            "role": "Rep",
+            "status": "Not joined"
+        },
+        "lastActive": {
+            "andre-ruiz": "Yesterday",
+            "maya-jordan": "Now",
+            "priya-shah": "Now",
+            "sheku-koroma": "Now"
+        },
+        "lede": "4 people, 1 invite. Removing someone asks who takes their deals first.",
+        "roleOptions": [
+            "Rep",
+            "Manager",
+            "Admin"
+        ],
+        "roles": [
+            {
+                "desc": "own deals, log activity, see the whole board",
+                "name": "Rep"
+            },
+            {
+                "desc": "also reassign deals and see Reports",
+                "name": "Manager"
+            },
+            {
+                "desc": "also stages, settings, team and imports",
+                "name": "Admin"
+            }
+        ],
+        "seatInviteIndex": 4,
+        "seatSegments": 5,
+        "seatsLabel": "Seats: 5 of 5 used, counting the invite."
+    },
+    "workspace": {
+        "connected": [
+            {
+                "kind": "calendar",
+                "name": "Google Calendar",
+                "note": "Connected for 4 people \u00b7 meetings with contacts log themselves"
+            },
+            {
+                "kind": "mail",
+                "name": "Gmail",
+                "noteBefore": "Connected for 3 people \u00b7 ",
+                "noteWatch": "Andre hasn\u2019t connected"
+            }
+        ],
+        "currency": "US dollar",
+        "currencyNote": "Card values round to the nearest $0.5K; detail shows the full amount.",
+        "exportLabel": "Download all deals, contacts and activity",
+        "lede": "Rules every deal in Sevyn Labs \u00b7 Sales follows.",
+        "name": "Sevyn Labs \u00b7 Sales",
+        "nextStepRuleNote": "With a date. Deals without one show \u201cNo next step\u201d in red.",
+        "nextStepRuleState": "On \u00b7 1 deal breaks this today (Kestrel Freight)",
+        "quartersStart": "January",
+        "staleConsequence": "After saving, Meridian Foods (16 days) shows as stale. Stage-level limits in Pipeline stages still win.",
+        "staleDraftDays": 14,
+        "staleSavedDays": 21,
+        "staleUnit": "days with no reply or stage change",
+        "wonRules": [
+            "Blocked while a next step is marked \u201cblocks the contract\u201d",
+            "Ask for the signed date and final value"
+        ]
+    }
+}
