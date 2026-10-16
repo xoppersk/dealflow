@@ -1,4 +1,22 @@
-import type { PipelineStageRow, UserRole } from "@/lib/supabase/types";
+/**
+ * Data-source-agnostic stage + role shapes for the move rules below.
+ * (These mirror the §9/§10 product rules; the type definitions previously
+ * came from the v1 backend layer, removed under the "new version only"
+ * ruling — the rules themselves and their tests are unchanged.)
+ */
+export type UserRole = "rep" | "manager" | "admin";
+
+export interface PipelineStageRow {
+  id: string;
+  name: string;
+  position: number;
+  color: string;
+  is_closed_won: boolean;
+  is_closed_lost: boolean;
+  default_probability: number;
+  created_at: string;
+  updated_at: string;
+}
 
 /**
  * Stage transition rules (TECHNICAL-REQUIREMENTS.md §2, PRD acceptance criteria).

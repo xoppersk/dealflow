@@ -6,7 +6,7 @@ import {
   defaultStageForNewDeal,
   sortStagesForBoard,
 } from "./stage-rules";
-import type { PipelineStageRow } from "@/lib/supabase/types";
+import type { PipelineStageRow } from "./stage-rules";
 
 function stage(overrides: Partial<PipelineStageRow> = {}): PipelineStageRow {
   return {
