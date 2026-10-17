@@ -81,13 +81,23 @@ export function CommandPalette({
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
 
-  useEffect(() => {
-    if (open) {
+  // Reset the search when the palette (re)opens — adjusted during render
+  // (React's recommended pattern) instead of in an effect.
+  const [prevOpenKey, setPrevOpenKey] = useState<string | null>(null);
+  const openKey = open ? `open:${initialQuery}` : null;
+  if (openKey !== prevOpenKey) {
+    setPrevOpenKey(openKey);
+    if (openKey !== null) {
       setQuery(initialQuery);
       setActive(0);
+    }
+  }
+
+  useEffect(() => {
+    if (open) {
       requestAnimationFrame(() => inputRef.current?.focus());
     }
-  }, [open, initialQuery]);
+  }, [open ]);
 
   const q = query.trim().toLowerCase();
 
@@ -127,10 +137,6 @@ export function CommandPalette({
     }
     return { groups, flat: groups.flatMap((g) => g.options), topDeal: top };
   }, [q]);
-
-  useEffect(() => {
-    setActive(0);
-  }, [query]);
 
   useEffect(() => {
     const el = listRef.current?.querySelector('[aria-selected="true"]');
@@ -190,8 +196,6 @@ export function CommandPalette({
     }
   }
 
-  let flatIndex = -1;
-
   return (
     <div className="scrim" style={{ padding: "0 16px", alignItems: "flex-start" }} onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
       <div
@@ -218,7 +222,10 @@ export function CommandPalette({
             aria-controls="df-palette-list"
             aria-activedescendant={flat[active] ? `df-opt-${flat[active].id}` : undefined}
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
+            onChange={(e) => {
+              setQuery(e.target.value);
+              setActive(0);
+            }}
             autoComplete="off"
           />
           <span className="kb">esc</span>
@@ -232,8 +239,7 @@ export function CommandPalette({
               </div>
               <ul role="group" style={{ margin: 0, padding: 0, listStyle: "none" }}>
                 {g.options.map((opt) => {
-                  flatIndex += 1;
-                  const idx = flatIndex;
+                  const idx = flat.indexOf(opt);
                   const selected = idx === active;
                   return (
                     <li
@@ -253,7 +259,7 @@ export function CommandPalette({
             </li>
           ))}
           {flat.length === 0 ? (
-            <li className="opt" aria-disabled="true">
+            <li className="opt" role="option" aria-selected={false} aria-disabled="true">
               <span>No matches for “{query}”</span>
             </li>
           ) : null}
