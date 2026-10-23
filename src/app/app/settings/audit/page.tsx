@@ -1,63 +1,88 @@
-import { SettingsHead } from "@/components/df/mgmt/settings-head";
+import "@/styles/mgmt.css";
+import { Suspense } from "react";
 import { OwnerAvatar } from "@/components/df/primitives";
-import { activities, personById } from "@/lib/df/api";
-import { auditExtra } from "@/lib/df/mgmt-data";
+import { SettingsHead } from "@/components/df/mgmt/settings-head";
+import { personByIdSafe } from "@/lib/df/api";
+import { getDataset } from "@/lib/df/db";
+import { buildAuditEntries } from "@/lib/df/mgmt-data";
+import type { Person } from "@/lib/df/types";
+
+/** Fallback person for audit rows whose actor left the workspace. */
+function stubPerson(id: string): Person {
+  return {
+    id,
+    name: "Former member",
+    firstName: "Former",
+    initials: "?",
+    avatarBg: "#ECE9E1",
+    avatarColor: "#4A5550",
+    role: "Rep",
+    online: false,
+    you: false,
+    openDeals: 0,
+    openValue: 0,
+    openValueLabel: "",
+    email: "",
+  };
+}
 
 /**
- * /app/settings/audit — v1 route with NO v2 screen (coordinator ruling:
- * keep it functional under the new shell as a simple fixture-driven audit
- * list, styled with the settings sub-menu + .tbl/.tr classes, in the design
- * language). Sources: the api seam's activity/move history plus the
- * Management fixture extras (e.g. the Dana Cole invite). Flagged in
- * BUILD-LOG as a no-screen build.
+ * M-06 — Audit log (/app/settings/audit). Real audit_log rows for the
+ * workspace, newest first (actions write them: deal moves, stage changes,
+ * member and workspace changes).
  */
-export default function AuditPage() {
-  const entries = [...activities, ...auditExtra];
-
+async function AuditPageInner() {
+  const ds = await getDataset();
+  const entries = buildAuditEntries(ds);
+  const w = ds.settings;
   return (
-    <main className="mgmt-page">
+    <>
       <SettingsHead
         title="Audit log"
-        lede="Every change to deals, stages and settings in Sevyn Labs · Sales, in the order it happened. Kept from the activities and move history — there is no separate audit screen in the v2 designs."
+        lede={`Who changed what in ${w.workspaceName}${w.workspaceScope ? ` (${w.workspaceScope})` : ""}, newest first. ${entries.length} ${entries.length === 1 ? "entry" : "entries"}.`}
       />
-      <section className="panel" aria-labelledby="al" style={{ overflow: "hidden" }}>
-        <div className="ph">
-          <h2 id="al">History</h2>
-          <span>{entries.length} entries · fixture data</span>
+      <div className="panel">
+        <div className="tu" style={{ gridTemplateColumns: "170px 220px 1fr" }} role="row">
+          <span>When</span>
+          <span>Who</span>
+          <span>What changed</span>
         </div>
-        <div className="tbl-wrap">
-          <div className="tbl" style={{ minWidth: 720 }}>
-            <div className="tr th" style={{ gridTemplateColumns: "90px 110px minmax(0,1fr) 110px" }}>
-              <span>When</span>
-              <span>Who</span>
-              <span>Change</span>
-              <span>Day</span>
-            </div>
-            {entries.map((entry) => {
-              const person = personById(entry.ownerId);
-              return (
-                <div className="tr" key={entry.id} style={{ gridTemplateColumns: "90px 110px minmax(0,1fr) 110px" }}>
-                  <span className="mono" style={{ fontSize: 12, color: "var(--muted)" }}>
-                    {entry.timeLabel}
-                  </span>
-                  <span className="who">
-                    <OwnerAvatar person={person} />
-                    <span>{person.firstName}</span>
-                  </span>
-                  <span>
-                    <b style={{ fontWeight: 600 }}>{entry.type}</b> · {entry.subject}
-                    {entry.detail ? <small>{entry.detail}</small> : null}
-                  </span>
-                  <span style={{ fontSize: 13, color: "var(--muted)" }}>{entry.dayLabel}</span>
-                </div>
-              );
-            })}
+        {entries.map((e, i) => (
+          <div className="tu" key={e.id} style={{ gridTemplateColumns: "170px 220px 1fr" }} role="row">
+            <span className="dim mono" style={{ fontSize: 12.5 }}>
+              {e.dayLabel} · {e.timeLabel}
+            </span>
+            <span className="person">
+              <OwnerAvatar person={personByIdSafe(ds.team, e.ownerId) ?? stubPerson(e.ownerId)} />
+              <b>{(personByIdSafe(ds.team, e.ownerId) ?? stubPerson(e.ownerId)).name}</b>
+            </span>
+            <span className={i === 0 ? "this-week" : undefined}>
+              {e.subject}
+              {e.detail ? (
+                <>
+                  {" — "}
+                  <b>{e.detail}</b>
+                </>
+              ) : null}
+            </span>
           </div>
-        </div>
-        <p className="def">
-          Moves keep both versions when two people change the same deal at once — nothing is overwritten silently.
-        </p>
-      </section>
-    </main>
+        ))}
+        {entries.length === 0 ? (
+          <p style={{ padding: "18px 20px", color: "var(--muted)", fontSize: 14 }}>
+            Nothing yet — moves and changes land here as they happen.
+          </p>
+        ) : null}
+      </div>
+    </>
   );
 }
+
+export default function AuditPage() {
+  return (
+    <Suspense fallback={null}>
+      <AuditPageInner />
+    </Suspense>
+  );
+}
+
+export const instant = false;
