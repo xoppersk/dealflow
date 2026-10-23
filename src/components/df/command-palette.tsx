@@ -2,7 +2,8 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { companies, companyById, contacts, deals, stageById } from "@/lib/df/api";
+import { companyByIdSafe, stageByIdSafe } from "@/lib/df/api";
+import { useDatasetOptional } from "./dataset-context";
 import { moneyCompact } from "@/lib/df/format";
 import type { Deal } from "@/lib/df/types";
 
@@ -76,6 +77,11 @@ export function CommandPalette({
   initialQuery?: string;
 }) {
   const router = useRouter();
+  const ds = useDatasetOptional();
+  const deals = ds?.deals ?? [];
+  const contacts = ds?.contacts ?? [];
+  const companies = ds?.companies ?? [];
+  const stages = ds?.stages ?? [];
   const [query, setQuery] = useState(initialQuery);
   const [active, setActive] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -97,13 +103,13 @@ export function CommandPalette({
     if (open) {
       requestAnimationFrame(() => inputRef.current?.focus());
     }
-  }, [open ]);
+  }, [open]);
 
   const q = query.trim().toLowerCase();
 
   const { groups, flat, topDeal } = useMemo(() => {
     const matches = (text: string) => !q || text.toLowerCase().includes(q);
-    const matchedDeals = deals.filter((d) => matches(`${companyById(d.companyId).name} ${d.name}`));
+    const matchedDeals = deals.filter((d) => matches(`${companyByIdSafe(companies, d.companyId)?.name ?? ""} ${d.name}`));
     const dealOpts: Option[] = matchedDeals.map((d) => ({ kind: "deal" as const, id: `deal-${d.id}`, deal: d }));
     const peopleOpts: Option[] = [
       ...contacts
@@ -133,10 +139,10 @@ export function CommandPalette({
     if (dealOpts.length) groups.push({ label: "Deals", options: dealOpts });
     if (peopleOpts.length) groups.push({ label: "People and companies", options: peopleOpts });
     if (top) {
-      groups.push({ label: `Do something on ${companyById(top.companyId).name}`, options: actionOpts });
+      groups.push({ label: `Do something on ${companyByIdSafe(companies, top.companyId)?.name ?? top.name}`, options: actionOpts });
     }
     return { groups, flat: groups.flatMap((g) => g.options), topDeal: top };
-  }, [q]);
+  }, [q, deals, contacts, companies]);
 
   useEffect(() => {
     const el = listRef.current?.querySelector('[aria-selected="true"]');
@@ -251,7 +257,7 @@ export function CommandPalette({
                       onMouseEnter={() => setActive(idx)}
                       onClick={() => activate(opt)}
                     >
-                      {renderOption(opt, query, topDeal)}
+                      {renderOption(opt, query, topDeal, { deals, contacts, companies, stages })}
                     </li>
                   );
                 })}
@@ -281,9 +287,17 @@ export function CommandPalette({
   );
 }
 
-function renderOption(opt: Option, query: string, topDeal: Deal | undefined) {
+function renderOption(
+  opt: Option,
+  query: string,
+  topDeal: Deal | undefined,
+  lists: { deals: Deal[]; contacts: import("@/lib/df/types").Contact[]; companies: import("@/lib/df/types").Company[]; stages: import("@/lib/df/types").Stage[] },
+) {
+  const { deals, contacts, companies, stages } = lists;
   if (opt.kind === "deal") {
-    const company = companyById(opt.deal.companyId);
+    const company = companyByIdSafe(companies, opt.deal.companyId) ?? {
+      id: opt.deal.companyId, name: opt.deal.name, initials: "??", mgBg: "#F1EEE6", mgColor: "#17201E",
+    };
     return (
       <>
         <span>
@@ -295,7 +309,7 @@ function renderOption(opt: Option, query: string, topDeal: Deal | undefined) {
           </span>
         </span>
         <span className="mono" style={{ fontSize: 13 }}>
-          {moneyCompact(opt.deal.value)} · {stageById(opt.deal.stageId).name}
+          {moneyCompact(opt.deal.value)} · {stageByIdSafe(stages, opt.deal.stageId)?.name ?? opt.deal.stageId}
         </span>
       </>
     );
@@ -328,7 +342,7 @@ function renderOption(opt: Option, query: string, topDeal: Deal | undefined) {
     );
   }
   if (opt.kind === "company") {
-    const comp = companyById(opt.companyId);
+    const comp = companyByIdSafe(companies, opt.companyId)!;
     const open = deals.filter((d) => d.companyId === comp.id).reduce((s, d) => s + d.value, 0);
     return (
       <>
