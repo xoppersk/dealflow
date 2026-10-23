@@ -1,16 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { companyById, dealById } from "@/lib/df/api";
 import { BrandMark, SearchIcon } from "@/components/df/icons";
-import { Monogram } from "@/components/df/primitives";
 import "@/styles/system.css";
 
 export const metadata: Metadata = { title: "Page not found" };
 
 const TABS: { label: string; href: string; count?: number; current?: boolean }[] = [
-  { label: "Today", href: "/app", count: 3 },
+  { label: "Today", href: "/app" },
   { label: "Pipeline", href: "/app/pipeline", current: true },
-  { label: "Activities", href: "/app/activities", count: 2 },
+  { label: "Activities", href: "/app/activities" },
   { label: "Contacts", href: "/app/contacts" },
   { label: "Companies", href: "/app/companies" },
   { label: "Reports", href: "/app/reports" },
@@ -18,14 +16,12 @@ const TABS: { label: string; href: string; count?: number; current?: boolean }[]
 ];
 
 /**
- * X-06 404 — NotFound.html exactly: "We can't find that deal." with the
- * suggestion of the renamed Bracken deal. not-found renders outside the
- * /app layout, so the screen's app header is replicated statically here
- * (Pipeline is the drawn current tab).
+ * X-06 404 — NotFound.html: "We can't find that deal." Production copy is
+ * static (not-found renders outside the /app layout and has no session
+ * dataset) — the header is replicated statically, with no fixture counts
+ * or fixture-deal suggestion.
  */
 export default function NotFound() {
-  const bracken = dealById("bracken-works-annual-operations-plan")!;
-  const company = companyById(bracken.companyId);
 
   return (
     <div className="sys-404-root">
@@ -36,7 +32,7 @@ export default function NotFound() {
           </span>
           <span className="wm">
             <b>Dealflow</b>
-            <span>Sevyn Labs · Sales</span>
+            <span>Dealflow</span>
           </span>
         </Link>
 
@@ -60,17 +56,7 @@ export default function NotFound() {
           <span className="kbd">⌘K</span>
         </span>
 
-        <div className="presence-stack" aria-label="Online now: Maya Jordan, Priya Shah, you" role="img">
-          <span className="own" style={{ background: "#D9ECE9" }} aria-hidden="true">
-            MJ
-          </span>
-          <span className="own" style={{ background: "#E7E0F2" }} aria-hidden="true">
-            PS
-          </span>
-          <span className="own" style={{ background: "var(--ink)", color: "#fff" }} aria-hidden="true">
-            SK
-          </span>
-        </div>
+        <span />
       </header>
 
       <main className="sys-state-wrap">
@@ -89,13 +75,12 @@ export default function NotFound() {
             It may have been merged into another deal, deleted, or the link is from a different
             workspace. Nothing you were working on was lost.
           </p>
-          <Link href="/app/deals/bracken-works" className="sys-suggest">
-            <Monogram initials={company.initials} bg={company.mgBg} color={company.mgColor} />
+          <Link href="/app/pipeline" className="sys-suggest">
             <span className="body">
               <span>
-                Did you mean <b>{company.name} · Annual operations plan</b>?
+                <b>Browse the pipeline</b> instead?
               </span>
-              <span className="when">It was renamed on Sep 18.</span>
+              <span className="when">Deals, contacts and companies live there.</span>
             </span>
             <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#66716E" strokeWidth="1.6" aria-hidden="true">
               <path d="M3 8h10M9 4l4 4-4 4" />
