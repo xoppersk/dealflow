@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { companyById, stages } from "@/lib/df/api";
+import { companyByIdSafe } from "@/lib/df/api";
+import { useDataset } from "../dataset-context";
 import { moneyCompact } from "@/lib/df/format";
 import { checkMove } from "@/lib/df/rules";
 import type { Deal } from "@/lib/df/types";
@@ -22,7 +23,11 @@ export function MoveMenu({
   onChoose: (deal: Deal, toStageId: string) => void;
   onClose: () => void;
 }) {
-  const company = companyById(deal.companyId);
+  const ds = useDataset();
+  const stages = ds.stages;
+  const company = companyByIdSafe(ds.companies, deal.companyId) ?? {
+    id: deal.companyId, name: deal.name, initials: "??", mgBg: "#F1EEE6", mgColor: "#17201E",
+  };
   const currentIdx = Math.max(
     0,
     stages.findIndex((s) => s.id === deal.stageId),
