@@ -1,29 +1,21 @@
-"use client";
-
+import type { Metadata } from "next";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useState, type FormEvent } from "react";
+import { Suspense } from "react";
 import { BrandMark } from "@/components/df/icons";
 import "@/styles/system.css";
+import { AcceptForm } from "./accept-form";
+
+export const metadata: Metadata = { title: "Accept invitation" };
 
 /**
- * /accept — NO v2 SCREEN (coordinator ruling, flagged in BUILD-LOG): the v1
- * invite set-password route kept functional as a v2-styled screen in
- * Login.html's visual language — brand header, the dark product-statement
- * panel, the legal footer, a name + password form, and the
- * "Set password and open Dealflow" button. Fixture demo — no backend:
- * submitting opens the app.
+ * /accept?token=… — team-invite landing. NO v2 SCREEN (coordinator
+ * ruling): kept in Login.html's visual language — brand header, the dark
+ * product-statement panel, the legal footer. Behaviour is real: the
+ * token is looked up server-side (service role), a signed-out invitee
+ * creates their account with the invited email, and acceptance adds
+ * their workspace membership (see ./actions.ts).
  */
 export default function AcceptPage() {
-  const router = useRouter();
-  const [name, setName] = useState("");
-  const [password, setPassword] = useState("");
-
-  function onSubmit(e: FormEvent) {
-    e.preventDefault();
-    router.push("/app");
-  }
-
   return (
     <div className="sys-login-root">
       <header className="sys-login-header">
@@ -36,42 +28,9 @@ export default function AcceptPage() {
       </header>
 
       <div className="sys-login-main">
-        <form className="sys-login-form" onSubmit={onSubmit}>
-          <h1>Set your password</h1>
-          <div className="f">
-            <label htmlFor="nm">Your name</label>
-            <input
-              id="nm"
-              className="in sys-wide"
-              type="text"
-              autoComplete="name"
-              required
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-            />
-          </div>
-          <div className="f">
-            <label htmlFor="pw">Password</label>
-            <input
-              id="pw"
-              className="in sys-wide"
-              type="password"
-              autoComplete="new-password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-          </div>
-          <button type="submit" className="btn pri sys-wide">
-            Set password and open Dealflow
-          </button>
-          <p style={{ margin: 0, fontSize: 13, color: "var(--muted)" }}>
-            Already set up?{" "}
-            <Link href="/login" style={{ fontWeight: 600 }}>
-              Sign in
-            </Link>
-          </p>
-        </form>
+        <Suspense fallback={null}>
+          <AcceptForm />
+        </Suspense>
 
         <aside className="sys-login-aside">
           <span className="eyebrow">
