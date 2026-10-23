@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { companyById, dealById, stageById } from "@/lib/df/api";
+import type { Company, Deal, Stage } from "@/lib/df/types";
 import { moneyCompact } from "@/lib/df/format";
 import "@/styles/system.css";
 
@@ -13,16 +13,13 @@ function PhoneIcon() {
 }
 
 /**
- * X-09 Offline queue (OfflineQueue.html) — the 390px phone deal sheet for
- * Bracken Works while offline: the ink OfflineQueue banner (role=status)
- * with 2 queued changes, the queued items marked "Saved on phone", and
- * Move stage disabled with its reason. Daily renders this for
- * /app/pipeline?state=offline.
+ * X-09 Offline queue (OfflineQueue.html) — the 390px phone deal sheet
+ * while offline: the ink OfflineQueue banner (role=status) with queued
+ * changes marked "Saved on phone", and Move stage disabled with its
+ * reason. Props-in (a real deal/company/stage); not routed in production —
+ * offline state is a client condition, not a URL state.
  */
-export function OfflineDealSheet() {
-  const deal = dealById("bracken-works-annual-operations-plan")!;
-  const company = companyById(deal.companyId);
-  const stage = stageById(deal.stageId);
+export function OfflineDealSheet({ deal, company, stage }: { deal: Deal; company: Company; stage: Stage }) {
 
   return (
     <div className="sys-phone">
@@ -56,10 +53,9 @@ export function OfflineDealSheet() {
         <section className="sys-phone-next">
           <span className="label">
             <i aria-hidden="true" />
-            Next step · due Thu, Oct 8
+            Next step{deal.nextStep ? ` · due ${deal.nextStep.dueLabel}` : ""}
           </span>
-          {/* Screen copy (X-09): the sheet drops the ", COO" suffix the card carries. */}
-          <span className="step-text">Confirm legal redlines with Jordan Bell</span>
+          <span className="step-text">{deal.nextStep?.text ?? "No next step set"}</span>
         </section>
 
         <section className="panel sys-queue-panel">
@@ -71,9 +67,9 @@ export function OfflineDealSheet() {
               </svg>
             </span>
             <span>
-              <b>Call logged</b> · <span className="mono">14:52</span>, 12 min
+              <b>Call logged</b>
               <br />
-              <span className="detail">“Jordan confirms 2 of 3 redlines. Liability cap still open.”</span>
+              <span className="detail">Queued from this phone while offline.</span>
               <br />
               <span className="sys-saved">
                 <PhoneIcon />
@@ -90,7 +86,7 @@ export function OfflineDealSheet() {
             <span>
               <b>Next step changed</b>
               <br />
-              <span className="detail">“Agree liability cap with Rachel Stone” · Fri, Oct 9</span>
+              <span className="detail">{deal.nextStep?.text ?? "—"}{deal.nextStep ? ` · ${deal.nextStep.dueLabel}` : ""}</span>
               <br />
               <span className="sys-saved">
                 <PhoneIcon />
