@@ -5,7 +5,9 @@ import "@/styles/records.css";
 import { ButtonLink } from "@/components/df/primitives";
 import { PlusIcon } from "@/components/df/icons";
 import { RichText, ToneChip, initialsOf } from "@/components/df/records/shared";
-import { deals, personById, stageById } from "@/lib/df/api";
+import { CompanyEditForm } from "@/components/df/records/edit-forms";
+import { personByIdSafe, stageByIdSafe } from "@/lib/df/api";
+import { getDataset } from "@/lib/df/db";
 import { moneyCompact } from "@/lib/df/format";
 import {
   colleaguesOfCompany,
@@ -32,9 +34,8 @@ const HEALTH_DOT: Record<string, string> = {
 };
 
 /**
- * R-05 Company detail (/app/companies/[company-slug]) — CompanyDetail.html
- * screen-exact for Bracken Works; the same layout renders every company
- * from the fixtures + records.json detail.
+ * R-05 Company detail (/app/companies/[id]) — CompanyDetail.html layout;
+ * the same layout renders every company from the real dataset.
  *
  * Params are dynamic, so the component that awaits them renders inside a
  * Suspense boundary; the static shell still prerenders.
@@ -49,14 +50,17 @@ export default function CompanyDetailPage({ params }: { params: Promise<{ id: st
 
 async function CompanyDetailInner({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const company = companyBySlug(id);
+  const ds = await getDataset();
+  const company = companyBySlug(ds, id);
   if (!company) notFound();
 
-  const detail = companyDetail(company.id);
-  const companyDeals = deals.filter((d) => d.companyId === company.id);
-  const people = colleaguesOfCompany(company.id);
-  const accountOwnerId = companyDeals[0]?.ownerId ?? "maya-jordan";
-  const accountOwner = personById(accountOwnerId);
+  const detail = companyDetail(ds, company.id);
+  const companyDeals = ds.deals.filter((d) => d.companyId === company.id);
+  const openCompanyDeals = companyDeals.filter((d) => d.stageId !== "won" && d.stageId !== "lost");
+  const people = colleaguesOfCompany(ds, company.id);
+  const accountOwnerId = company.ownerId ?? companyDeals[0]?.ownerId ?? ds.currentUserId;
+  const accountOwner = personByIdSafe(ds.team, accountOwnerId);
+  if (!accountOwner) notFound();
   const headerLine = [detail.industryFull, detail.sizeShort, detail.city, `account owner ${accountOwner.name}`]
     .filter(Boolean)
     .join(" · ");
@@ -80,7 +84,7 @@ async function CompanyDetailInner({ params }: { params: Promise<{ id: string }> 
             </div>
             <div className="rec-actions">
               <ButtonLink href="/app/contacts">Add contact</ButtonLink>
-              <ButtonLink href={`/app/deals/${company.id}`} variant="pri">
+              <ButtonLink href={`/app/setup/deal?company=${company.id}`} variant="pri">
                 <PlusIcon />
                 New deal
               </ButtonLink>
@@ -94,7 +98,7 @@ async function CompanyDetailInner({ params }: { params: Promise<{ id: string }> 
             The account in one line
           </h2>
           <p>
-            <RichText parts={companyOneLineParts(company.id)} />
+            <RichText parts={companyOneLineParts(ds, company.id)} />
           </p>
         </section>
 
@@ -102,15 +106,16 @@ async function CompanyDetailInner({ params }: { params: Promise<{ id: string }> 
           <div className="ph">
             <h2 id="deals-title">Deals</h2>
             <span>
-              {companyDeals.length} open · 0 closed
+              {openCompanyDeals.length} open · {companyDeals.length - openCompanyDeals.length} closed
             </span>
           </div>
           {companyDeals.map((d) => {
-            const stage = stageById(d.stageId);
+            const stage = stageByIdSafe(ds.stages, d.stageId);
+            if (!stage) return null;
             const chipLabel = d.nextStep?.blocks
-              ? "Legal redlines due Thu"
+              ? "Next step blocks the contract"
               : d.stale
-                ? "Stale · no reply in 16 days"
+                ? `Stale · no reply in ${d.daysInStage} days`
                 : !d.nextStep
                   ? "No next step"
                   : `Next step ${d.nextStep.dueLabel}`;
@@ -133,7 +138,7 @@ async function CompanyDetailInner({ params }: { params: Promise<{ id: string }> 
           })}
           {companyDeals.length === 0 ? (
             <p style={{ margin: "0 20px 16px", fontSize: 14, color: "var(--ink-2)" }}>
-              No open deals — Harborlight is a customer. The renewal is due in February.
+              No deals yet{company.customer ? " — this company is a customer" : ""}.
             </p>
           ) : null}
         </section>
@@ -143,7 +148,7 @@ async function CompanyDetailInner({ params }: { params: Promise<{ id: string }> 
             <h2 id="people-title">People · {people.length}</h2>
           </div>
           {people.map((c, i) => {
-            const cd = contactDetail(c.id);
+            const cd = contactDetail(ds, c.id);
             const row = (
               <>
                 <span
@@ -159,7 +164,7 @@ async function CompanyDetailInner({ params }: { params: Promise<{ id: string }> 
                 </span>
                 <span>{cd.roleOnDeal}</span>
                 <span className="mono" style={{ fontSize: 13, color: "var(--ink-2)" }}>
-                  {companyPersonDate(company.id, c.id)}
+                  {companyPersonDate(ds, company.id, c.id)}
                 </span>
               </>
             );
@@ -181,6 +186,9 @@ async function CompanyDetailInner({ params }: { params: Promise<{ id: string }> 
           <h2 className="lab" style={{ marginBottom: 14 }}>
             Company
           </h2>
+          <div style={{ marginBottom: 14 }}>
+            <CompanyEditForm company={company} />
+          </div>
           <dl className="kv">
             <dt>Website</dt>
             <dd>{detail.website}</dd>
@@ -210,3 +218,5 @@ async function CompanyDetailInner({ params }: { params: Promise<{ id: string }> 
     </div>
   );
 }
+
+export const instant = false;
