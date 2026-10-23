@@ -2,24 +2,23 @@ import { Suspense } from "react";
 import { ForbiddenState } from "@/components/df/system/forbidden-state";
 import { PeriodSwitch } from "@/components/df/mgmt/period-switch";
 import { OwnerAvatar } from "@/components/df/primitives";
-import { closed, deals, openStages, personById, stageTotal } from "@/lib/df/api";
+import { openStagesOf, personByIdSafe, stageTotal } from "@/lib/df/api";
+import { getDataset } from "@/lib/df/db";
 import { deltaVsSep, moneyCompact } from "@/lib/df/format";
-import { reportsData } from "@/lib/df/mgmt-data";
+import { buildReports } from "@/lib/df/mgmt-data";
 import "@/styles/mgmt.css";
 
 /**
  * M-01 — Reports (/app/reports), replicated from screens/Reports.html.
- * All canon figures come through the api seam and must agree with the
- * fixtures; screen-only copy/figures live in data/mgmt.json.
- * `?state=forbidden` renders the System group's X-07 state (Rep view).
- *
- * The query string is dynamic, so the component that awaits it renders
- * inside a Suspense boundary; the static shell still prerenders.
+ * Every figure is computed from the workspace dataset (mgmt-data
+ * buildReports); the period switch (?period=) re-windows closed deals by
+ * closed_at and calls by occurred_at. Reps get the X-07 Forbidden state —
+ * from their real workspace role, not a URL override.
  */
 export default function ReportsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ state?: string | string[] }>;
+  searchParams: Promise<{ period?: string | string[] }>;
 }) {
   return (
     <Suspense fallback={null}>
@@ -31,19 +30,29 @@ export default function ReportsPage({
 async function ReportsInner({
   searchParams,
 }: {
-  searchParams: Promise<{ state?: string | string[] }>;
+  searchParams: Promise<{ period?: string | string[] }>;
 }) {
   const sp = await searchParams;
-  if (sp.state === "forbidden") {
-    return <ForbiddenState />;
+  const ds = await getDataset();
+  if (ds.workspaceRole === "rep") {
+    const admin = ds.team.find((p) => p.role === "Admin");
+    return <ForbiddenState admin={admin} roleLabel="Rep" />;
   }
+  const period = (Array.isArray(sp.period) ? sp.period[0] : sp.period) ?? "This quarter";
+  const reportsData = buildReports(ds, period);
+  const deals = ds.deals;
+  const closed = ds.closed;
+  const openStages = openStagesOf(ds.stages);
 
-  const maxStageValue = 200000; // bars are drawn against a $200K scale on the screen
-  const ownerRows = reportsData.byOwner.map((row) => {
-    const person = personById(row.personId);
-    const mine = deals.filter((d) => d.ownerId === person.id);
-    return { row, person, open: mine.length, value: mine.reduce((s, d) => s + d.value, 0) };
-  });
+  const maxStageValue = Math.max(200000, ...openStages.map((s) => stageTotal(deals, s.id)));
+  const ownerRows = reportsData.byOwner
+    .map((row) => {
+      const person = personByIdSafe(ds.team, row.personId);
+      if (!person) return null;
+      const mine = deals.filter((d) => d.ownerId === person.id && d.stageId !== "won" && d.stageId !== "lost");
+      return { row, person, open: mine.length, value: mine.reduce((s, d) => s + d.value, 0) };
+    })
+    .filter((r): r is NonNullable<typeof r> => r !== null);
 
   return (
     <main className="mgmt mgmt-page">
@@ -52,7 +61,7 @@ async function ReportsInner({
           <h1 className="h1">Reports</h1>
           <p className="lede">{reportsData.lede}</p>
         </div>
-        <PeriodSwitch />
+        <PeriodSwitch periods={reportsData.periods} current={period} />
       </div>
 
       <div className="rep-kl" role="list" aria-label="Headline numbers">
@@ -116,7 +125,7 @@ async function ReportsInner({
         <section className="dark-panel" aria-labelledby="ws">
           <div className="ph">
             <h2 id="ws">Won deals, days to close</h2>
-            <span>{closed.won} this quarter</span>
+            <span>{closed.won} won all-time in this workspace</span>
           </div>
           <div
             className="cy-wrap"
@@ -127,7 +136,7 @@ async function ReportsInner({
               <i
                 key={i}
                 className="cy"
-                style={{ height: `${reportsData.daysBarHeightsPct[i] ?? Math.round((days / Math.max(...closed.daysToClose)) * 100)}%` }}
+                style={{ height: `${closed.daysToClose.length ? Math.round((days / Math.max(...closed.daysToClose)) * 100) : 0}%` }}
               />
             ))}
           </div>
@@ -188,3 +197,5 @@ async function ReportsInner({
     </main>
   );
 }
+
+export const instant = false;
