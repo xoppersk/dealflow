@@ -1,186 +1,114 @@
-// NOTE — archived gallery (moved out of src/app 2026-10-22, W3).
-// This file is UNROUTED and EXCLUDED from the production build. It is
-// preserved verbatim from src/app/dev/components/page.tsx. It references
-// the old v2 fixture seam and will not compile in its current location.
-// Do not move back under src/app without re-integrating the data seam.
+"use client";
 
-'use client';
+import { useState } from "react";
+import { activities, dealById, stageById } from "@/lib/df/api";
+import { ConfirmLost } from "@/components/df/confirm-lost";
+import { DealCard, StageHeader } from "@/components/df/deal-card";
+import { NextStepPanel } from "@/components/df/next-step";
+import { Button, Segmented, UrgencyLabel } from "@/components/df/primitives";
+import { ActivityRow, OfflineBanner } from "@/components/df/rows";
 
-import { useState } from 'react';
-import {
-  Button,
-  Badge,
-  Field,
-  Select,
-  TextInput,
-  Textarea,
-  Checkbox,
-  Radio,
-  RadioGroup,
-  Toggle,
-  DateInput,
-  SearchInput,
-  NumberInput,
-  FilterChip,
-  Tabs,
-  Progress,
-  Avatar,
-  Icon,
-  Card,
-  Surface,
-  Divider,
-  Stack,
-  Inline,
-  Metric,
-  EmptyState,
-} from '@/components/df/primitives';
-import { DealCard } from '@/components/df/deal-card';
-import { NextStep } from '@/components/df/next-step';
-import { sample } from '@/lib/df/types';
-
-const deal = sample.deals[0];
-const person = sample.people[0];
-
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <Surface as="section" pad="lg" className="space-y-4">
-      <h2 className="text-lg font-semibold text-ink">{title}</h2>
-      {children}
-    </Surface>
-  );
-}
-
+/**
+ * /dev/components — every §7 component on one page (HANDOVER §12 build
+ * order step 2). Not part of the product navigation.
+ */
 export default function ComponentsPage() {
-  const [input, setInput] = useState('');
-  const [checked, setChecked] = useState(true);
-  const [radio, setRadio] = useState('a');
-  const [toggle, setToggle] = useState(false);
-  const [tab, setTab] = useState('one');
-  const [chips, setChips] = useState<string[]>(['Won']);
+  const [view, setView] = useState<"board" | "list">("board");
+  const [lostOpen, setLostOpen] = useState(false);
+  const bracken = dealById("bracken-works-annual-operations-plan")!;
+  const kestrel = dealById("kestrel-freight-logistics-contract")!;
+  const solace = dealById("solace-energy-field-team-package")!;
+  const negotiation = stageById("negotiation");
 
   return (
-    <div className="min-h-screen bg-canvas p-6">
-      <Stack gap="lg" className="mx-auto max-w-5xl">
-        <header>
-          <h1 className="text-2xl font-bold text-ink">DF component gallery</h1>
-          <p className="text-sm text-ink-2">Every df primitive on one page, wired to local state.</p>
-        </header>
+    <div className="page" style={{ maxWidth: 980, margin: "0 auto", width: "100%" }}>
+      <header className="page-head">
+        <div className="titles">
+          <h1 className="page-title">Components</h1>
+          <p className="summary">Dealflow Premium v2 — the §7 component set, built before the screens.</p>
+        </div>
+      </header>
 
-        <Section title="Buttons">
-          <Inline gap="sm" wrap>
-            <Button variant="primary">Primary</Button>
-            <Button variant="secondary">Secondary</Button>
-            <Button variant="ghost">Ghost</Button>
-            <Button variant="danger">Danger</Button>
-            <Button size="sm">Small</Button>
-            <Button size="lg">Large</Button>
-            <Button disabled>Disabled</Button>
-          </Inline>
-        </Section>
+      <section className="panel panel-pad" style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+        <h2 className="panel-title">Button</h2>
+        <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
+          <Button variant="pri">New deal</Button>
+          <Button variant="progress">Save changes</Button>
+          <Button>Reschedule</Button>
+          <Button variant="destructive">Mark lost</Button>
+          <Button variant="destructive-fill">Mark as lost</Button>
+          <Button blockedReason="Waiting on legal redlines">Move to Won</Button>
+          <Button size="sm">Small</Button>
+          <Button size="lg">Large</Button>
+        </div>
+      </section>
 
-        <Section title="Badges">
-          <Inline gap="sm" wrap>
-            <Badge tone="neutral">Neutral</Badge>
-            <Badge tone="info">Info</Badge>
-            <Badge tone="success">Won</Badge>
-            <Badge tone="warning">At risk</Badge>
-            <Badge tone="danger">Lost</Badge>
-          </Inline>
-        </Section>
+      <section className="panel panel-pad" style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+        <h2 className="panel-title">UrgencyLabel — urgency is words</h2>
+        <div style={{ display: "flex", gap: 18 }}>
+          <UrgencyLabel urgency="act" />
+          <UrgencyLabel urgency="watch" />
+          <UrgencyLabel urgency="on-track" />
+        </div>
+      </section>
 
-        <Section title="Fields">
-          <Stack gap="md" className="max-w-md">
-            <Field label="Name" hint="Your full name">
-              <TextInput value={input} onChange={(e) => setInput(e.target.value)} placeholder="Ada Lovelace" />
-            </Field>
-            <Field label="Stage" error="Pick a stage">
-              <Select
-                options={[{ value: 'a', label: 'Discovery' }, { value: 'b', label: 'Proposal' }]}
-                value="a"
-                onChange={() => {}}
-              />
-            </Field>
-            <Field label="Notes">
-              <Textarea rows={3} placeholder="Context for the next call…" />
-            </Field>
-            <Inline gap="md">
-              <Checkbox checked={checked} onChange={(e) => setChecked(e.target.checked)} label="Subscribe" />
-              <Toggle checked={toggle} onChange={setToggle} label="Reminders" />
-            </Inline>
-            <RadioGroup value={radio} onChange={setRadio} label="Cadence">
-              <Radio value="a" label="Weekly" />
-              <Radio value="b" label="Monthly" />
-            </RadioGroup>
-            <Inline gap="md">
-              <Field label="Close date">
-                <DateInput value="2026-11-01" onChange={() => {}} />
-              </Field>
-              <Field label="Amount">
-                <NumberInput value={50000} onChange={() => {}} />
-              </Field>
-            </Inline>
-            <Field label="Search">
-              <SearchInput value={input} onChange={setInput} placeholder="Search deals…" />
-            </Field>
-          </Stack>
-        </Section>
+      <section className="panel panel-pad" style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+        <h2 className="panel-title">Segmented</h2>
+        <Segmented
+          label="View"
+          options={[
+            { value: "board", label: "Board" },
+            { value: "list", label: "List" },
+          ]}
+          value={view}
+          onChange={(v) => setView(v)}
+        />
+      </section>
 
-        <Section title="Filter chips & tabs">
-          <Inline gap="sm" wrap>
-            {['Won', 'Open', 'Lost'].map((c) => (
-              <FilterChip
-                key={c}
-                label={c}
-                active={chips.includes(c)}
-                onToggle={() =>
-                  setChips((s) => (s.includes(c) ? s.filter((x) => x !== c) : [...s, c]))
-                }
-              />
-            ))}
-          </Inline>
-          <Tabs
-            tabs={[{ id: 'one', label: 'Pipeline' }, { id: 'two', label: 'Activities' }]}
-            active={tab}
-            onChange={setTab}
-          />
-        </Section>
+      <section style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+        <h2 className="panel-title">StageHeader + DealCard</h2>
+        <div className="col" style={{ maxWidth: 340 }}>
+          <StageHeader stage={negotiation} deals={[bracken, dealById("vesper-studio-agency-partnership")!]} headingId="dev-sh" />
+          <DealCard deal={bracken} selected />
+          <DealCard deal={kestrel} />
+          <DealCard deal={solace} />
+        </div>
+        <div className="col" style={{ maxWidth: 340 }}>
+          <StageHeader stage={stageById("proposal")} deals={[]} failed headingId="dev-sh-failed" />
+        </div>
+      </section>
 
-        <Section title="Feedback">
-          <Stack gap="md" className="max-w-md">
-            <Progress value={62} />
-            <Inline gap="sm">
-              <Avatar name={person.name} bg={person.avatarBg} color={person.avatarColor} />
-              <Avatar name="Acme Corp" />
-            </Inline>
-            <Inline gap="sm">
-              <Icon name="check" /> <Icon name="alert" /> <Icon name="clock" />
-            </Inline>
-            <Metric label="Pipeline value" value="$1.2M" delta="+8%" />
-          </Stack>
-        </Section>
+      <section style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+        <h2 className="panel-title">NextStep</h2>
+        <div style={{ maxWidth: 640 }}>
+          <NextStepPanel deal={bracken} why="Jordan Bell, COO, decides; legal has the redlines." />
+        </div>
+      </section>
 
-        <Section title="Deal card & next step">
-          <div className="grid gap-4 md:grid-cols-2">
-            <DealCard deal={deal} />
-            <NextStep deal={deal} />
-          </div>
-        </Section>
+      <section className="panel" style={{ overflow: "hidden" }}>
+        <div className="ph">
+          <h2>ActivityRow</h2>
+          <span>Overdue tasks use the act tint</span>
+        </div>
+        {activities.map((a) => (
+          <ActivityRow key={a.id} activity={a} />
+        ))}
+      </section>
 
-        <Section title="Layout">
-          <Card pad="md">
-            <Stack gap="sm">
-              <p className="text-sm text-ink">Card inside a stack, above a divider.</p>
-              <Divider />
-              <p className="text-sm text-ink-2">Secondary copy under the divider.</p>
-            </Stack>
-          </Card>
-          <EmptyState
-            title="No deals yet"
-            body="Create your first deal to populate the pipeline."
-            action={<Button variant="primary">New deal</Button>}
-          />
-        </Section>
-      </Stack>
+      <section style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+        <h2 className="panel-title">OfflineQueue + ConfirmLost</h2>
+        <OfflineBanner count={2} />
+        <div>
+          <Button variant="destructive" onClick={() => setLostOpen(true)}>
+            Mark Kestrel Freight lost…
+          </Button>
+        </div>
+        <p className="caption" style={{ margin: 0 }}>
+          The command palette lives in the app shell — press ⌘K on any /app screen. It is not mounted on this page.
+        </p>
+      </section>
+
+      <ConfirmLost deal={kestrel} open={lostOpen} onClose={() => setLostOpen(false)} onConfirm={() => setLostOpen(false)} />
     </div>
   );
 }
