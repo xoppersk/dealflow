@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { companyById, contactById, contacts, personById, stageById, weightedForDeal } from "@/lib/df/api";
+import { companyByIdSafe, contactByIdSafe, personByIdSafe, stageByIdSafe, weightedForDeal } from "@/lib/df/api";
+import { useDataset } from "../dataset-context";
 import { moneyCompact } from "@/lib/df/format";
 import type { Deal } from "@/lib/df/types";
 import { CheckIcon } from "../icons";
@@ -22,14 +23,22 @@ function moneyOneDecimal(value: number): string {
  */
 export function DealPanel({ deal }: { deal: Deal }) {
   const router = useRouter();
-  const company = companyById(deal.companyId);
-  const stage = stageById(deal.stageId);
-  const owner = personById(deal.ownerId);
+  const ds = useDataset();
+  const company = companyByIdSafe(ds.companies, deal.companyId) ?? {
+    id: deal.companyId, name: deal.name, initials: "??", mgBg: "#F1EEE6", mgColor: "#17201E",
+  };
+  const stage = stageByIdSafe(ds.stages, deal.stageId) ?? {
+    id: deal.stageId, name: deal.stageId, winChance: 0, valueSep: 0, staleLimitDays: 14, requires: [],
+  };
+  const owner = personByIdSafe(ds.team, deal.ownerId) ?? {
+    id: deal.ownerId, name: "Owner", firstName: "Owner", initials: "??", email: "", role: "Rep",
+    openDeals: 0, openValue: 0, openValueLabel: "", avatarBg: "#F1EEE6", avatarColor: "#17201E", online: false,
+  };
   const step = deal.nextStep;
-  const weighted = deal.detail?.weighted ?? weightedForDeal(deal);
+  const weighted = deal.detail?.weighted ?? weightedForDeal(deal, ds.stages);
   const primary = deal.detail?.people[0]
-    ? contactById(deal.detail.people[0].contactId)
-    : contacts.find((c) => c.companyId === deal.companyId);
+    ? contactByIdSafe(ds.contacts, deal.detail.people[0].contactId)
+    : ds.contacts.find((c) => c.companyId === deal.companyId);
   const logHref = `/app/activities?deal=${deal.id}&log=1`;
 
   return (
@@ -67,11 +76,7 @@ export function DealPanel({ deal }: { deal: Deal }) {
       {step ? (
         <NextStepBox
           eyebrow={step.blocks ? "Next step · blocks the contract" : "Next step"}
-          due={
-            deal.detail
-              ? "Due Thu, in 2 days"
-              : step.dueLabel.replace(/^Due /, "Due ")
-          }
+          due={step.dueLabel.replace(/^Due /, "Due ")}
           tone={step.urgency === "watch" ? "watch" : "default"}
           text={step.text}
         >
@@ -95,36 +100,30 @@ export function DealPanel({ deal }: { deal: Deal }) {
         </div>
       )}
 
-      {deal.detail ? (
+      {deal.detail && deal.detail.stageHistory.length > 0 ? (
         <section aria-labelledby="dp-path">
           <h3 id="dp-path" style={{ margin: "0 0 4px", fontSize: 13, fontWeight: 600 }}>
-            Path to signature
+            Path so far
           </h3>
-          <div className="step">
-            <span className="d" style={{ background: "var(--progress)" }}>
-              <CheckIcon />
-            </span>
-            <span>Verbal yes on scope and price</span>
-            <span className="mono" style={{ fontSize: 12, color: "var(--muted)" }}>
-              Oct 1
-            </span>
-          </div>
-          <div className="step">
-            <span className="d" style={{ boxShadow: "inset 0 0 0 2px var(--watch)" }}>
-              <i style={{ width: 6, height: 6, borderRadius: 3, background: "var(--watch)" }} />
-            </span>
-            <span style={{ fontWeight: 600 }}>Legal redlines</span>
-            <span className="mono u-watch" style={{ fontSize: 12 }}>
-              Oct 8
-            </span>
-          </div>
-          <div className="step">
-            <span className="d" style={{ boxShadow: "inset 0 0 0 1.5px var(--control)" }} />
-            <span style={{ color: "var(--muted)" }}>Countersigned contract</span>
-            <span className="mono" style={{ fontSize: 12, color: "var(--muted)" }}>
-              —
-            </span>
-          </div>
+          {deal.detail.stageHistory.map((h, i) => {
+            const hs = stageByIdSafe(ds.stages, h.stageId);
+            const isLast = i === deal.detail!.stageHistory.length - 1;
+            return (
+              <div className="step" key={`${h.stageId}-${i}`}>
+                <span className="d" style={isLast ? { boxShadow: "inset 0 0 0 2px var(--watch)" } : { background: "var(--progress)" }}>
+                  {isLast ? (
+                    <i style={{ width: 6, height: 6, borderRadius: 3, background: "var(--watch)" }} />
+                  ) : (
+                    <CheckIcon />
+                  )}
+                </span>
+                <span style={isLast ? { fontWeight: 600 } : undefined}>{hs?.name ?? h.stageId}</span>
+                <span className="mono" style={{ fontSize: 12, color: "var(--muted)" }}>
+                  {h.dateLabel}
+                </span>
+              </div>
+            );
+          })}
         </section>
       ) : null}
 
