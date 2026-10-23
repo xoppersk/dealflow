@@ -4,7 +4,10 @@ import { notFound } from "next/navigation";
 import "@/styles/records.css";
 import { OwnerAvatar } from "@/components/df/primitives";
 import { CheckIcon } from "@/components/df/icons";
+import { DatasetProvider } from "@/components/df/dataset-context";
 import {
+  DealEditForm,
+  DealFiles,
   DealHeaderActions,
   FocusNextStep,
   NextStepActions,
@@ -12,13 +15,14 @@ import {
 } from "@/components/df/records/deal-client";
 import { ToneChip, initialsOf } from "@/components/df/records/shared";
 import {
-  companyById,
-  contactById,
-  openStages,
-  personById,
-  stageById,
+  companyByIdSafe,
+  contactByIdSafe,
+  openStagesOf,
+  personByIdSafe,
+  stageByIdSafe,
   weightedForDeal,
 } from "@/lib/df/api";
+import { getDataset } from "@/lib/df/db";
 import { moneyCompact, moneyExact } from "@/lib/df/format";
 import {
   dealByCompanySlug,
@@ -27,6 +31,7 @@ import {
   staleHeaderSuffix,
   staleNoticeFor,
 } from "@/lib/df/records-data";
+import type { Dataset } from "@/lib/df/types";
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
@@ -41,11 +46,11 @@ function cap(s: string): string {
 }
 
 /**
- * R-01 Deal detail (/app/deals/[company-slug]) — DealDetail.html screen-exact
- * for Bracken Works; the same layout renders every deal from the fixtures.
- * X-05: a stale deal (Meridian) carries the stale notice on its page;
- * ?state=stale forces the notice for the dev toggle. ?focus=next-step
- * scrolls to and focuses the next-step panel.
+ * R-01 Deal detail (/app/deals/[id]) — DealDetail.html layout; the route
+ * param resolves as a deal uuid or a company id (the v2 links use the
+ * company id). X-05: a stale deal carries the stale notice on its page
+ * (from real stale state — no ?state= override). ?focus=next-step scrolls
+ * to and focuses the next-step panel.
  *
  * Params and the query string are dynamic, so the component that awaits
  * them renders inside a Suspense boundary; the static shell still
@@ -56,7 +61,7 @@ export default function DealPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ focus?: string; state?: string }>;
+  searchParams: Promise<{ focus?: string }>;
 }) {
   return (
     <Suspense fallback={null}>
@@ -70,32 +75,38 @@ async function DealInner({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ focus?: string; state?: string }>;
+  searchParams: Promise<{ focus?: string }>;
 }) {
   const { id } = await params;
   const sp = await searchParams;
-  const deal = dealByCompanySlug(id);
+  const ds: Dataset = await getDataset();
+  const deal = dealByCompanySlug(ds, id);
   if (!deal) notFound();
 
-  const company = companyById(deal.companyId);
-  const owner = personById(deal.ownerId);
-  const stage = stageById(deal.stageId);
-  const page = dealPage(deal.id);
-  const people = dealPeople(deal);
+  const company = companyByIdSafe(ds.companies, deal.companyId);
+  if (!company) notFound();
+  const owner = personByIdSafe(ds.team, deal.ownerId);
+  if (!owner) notFound();
+  const stage = stageByIdSafe(ds.stages, deal.stageId);
+  if (!stage) notFound();
+  const openStages = openStagesOf(ds.stages);
+  const page = dealPage(ds, deal.id);
+  const people = dealPeople(ds, deal);
   const step = deal.nextStep;
   const close = closeLabel(deal.closeDate);
-  const weighted = deal.detail?.weighted ?? weightedForDeal(deal);
+  const weighted = deal.detail?.weighted ?? weightedForDeal(deal, ds.stages);
 
-  const showStale = Boolean(deal.stale) || sp.state === "stale";
-  const notice = showStale ? staleNoticeFor(deal) : null;
+  const showStale = Boolean(deal.stale);
+  const notice = showStale ? staleNoticeFor(ds, deal) : null;
 
   /* Stage strip (.sg): history labels from the fixture detail block when
      drawn (Bracken), otherwise derived from the stage position. */
-  const stripStages = [...openStages, stageById("won")];
+  const stripStages = [...openStages, stageByIdSafe(ds.stages, "won") ?? stage];
   const history = new Map((deal.detail?.stageHistory ?? []).map((h) => [h.stageId, h.dateLabel]));
   const currentIdx = stripStages.findIndex((s) => s.id === deal.stageId);
 
   return (
+    <DatasetProvider dataset={ds}>
     <div className="rec-layout">
       <main className="rec-main">
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
@@ -114,7 +125,7 @@ async function DealInner({
                 <span className="rec-sub">
                   <span className="big">{moneyCompact(deal.value)}</span> · owned by {owner.name}
                   {close ? <> · expected to close {close}</> : null}
-                  {staleHeaderSuffix(deal.id) ? <> · {staleHeaderSuffix(deal.id)}</> : null}
+                  {staleHeaderSuffix(ds, deal.id) ? <> · {staleHeaderSuffix(ds, deal.id)}</> : null}
                   {deal.presence ? (
                     <>
                       {" · "}
@@ -183,7 +194,7 @@ async function DealInner({
               </div>
               <p className="rec-ns-sentence">{page.nextStepSentence ?? step.text}</p>
               {page.nextStepWhy ? <p className="rec-ns-why">{page.nextStepWhy}</p> : null}
-              <NextStepActions />
+              <NextStepActions deal={deal} />
             </section>
           ) : (
             <section id="next-step-panel" tabIndex={-1} aria-labelledby="ns-title" className="rec-nextstep act">
@@ -200,10 +211,9 @@ async function DealInner({
                 Last touch was {deal.lastTouchLabel}. Every open deal needs a next step before it can move.
               </p>
               <NextStepActions
+                deal={deal}
                 primaryLabel="Set the next step"
                 secondaryLabel="Log activity"
-                primaryMsg="Set the next step — a deal can’t be saved without one and a date."
-                secondaryMsg="Log activity — note what happened on the last call."
               />
             </section>
           )
@@ -217,7 +227,8 @@ async function DealInner({
             </Link>
           </div>
           {page.activities.map((a, i) => {
-            const actor = personById(a.ownerId);
+            const actor = personByIdSafe(ds.team, a.ownerId);
+            if (!actor) return null;
             const last = i === page.activities.length - 1;
             return (
               <div
@@ -286,7 +297,8 @@ async function DealInner({
         <section style={{ paddingTop: 20, borderTop: "1px solid var(--rule)" }}>
           <h2>People on this deal</h2>
           {people.map((p, i) => {
-            const contact = contactById(p.contactId);
+            const contact = contactByIdSafe(ds.contacts, p.contactId);
+            if (!contact) return null;
             return (
               <div key={p.contactId} className="pp" style={i === 0 ? { borderTop: 0 } : undefined}>
                 <span
@@ -309,6 +321,12 @@ async function DealInner({
           })}
         </section>
 
+        <section style={{ paddingTop: 20, borderTop: "1px solid var(--rule)" }}>
+          <DealEditForm deal={deal} team={ds.team} />
+        </section>
+
+        <DealFiles deal={deal} workspaceId={ds.workspaceId} />
+
         {step?.blocks ? (
           <section className="rec-note">
             <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#66716E" strokeWidth="1.6" aria-hidden="true">
@@ -320,5 +338,8 @@ async function DealInner({
         ) : null}
       </aside>
     </div>
+    </DatasetProvider>
   );
 }
+
+export const instant = false;
