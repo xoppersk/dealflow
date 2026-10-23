@@ -1,7 +1,8 @@
 import { Suspense } from "react";
 import { BoardClient } from "@/components/df/board/board-client";
 import { EmptyPipeline } from "@/components/df/system/empty-pipeline";
-import { OfflineDealSheet } from "@/components/df/system/offline-sheet";
+import { isOpenDeal } from "@/lib/df/api";
+import { getDataset } from "@/lib/df/db";
 import "@/styles/daily.css";
 
 function single(v: string | string[] | undefined): string | undefined {
@@ -10,11 +11,12 @@ function single(v: string | string[] | undefined): string | undefined {
 
 /**
  * D-02 Pipeline (/app/pipeline) — Main.html.
- * Filters, view and the selected deal live in the URL (§10); every system
- * state is reachable with ?state= (palette / empty / error / offline).
+ * Filters, view and the selected deal live in the URL (§10). System states
+ * arise from REAL data only: a workspace with no open deals renders the
+ * EmptyPipeline state; there is no ?state= fixture override.
  *
  * The query string is dynamic, so the component that awaits it renders
- * inside a Suspense boundary; the static shell still prerenders.
+ * inside a Suspense boundary.
  */
 export default function PipelinePage({
   searchParams,
@@ -34,32 +36,27 @@ async function PipelineInner({
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const sp = await searchParams;
-  const state = single(sp.state);
+  const dataset = await getDataset();
 
-  if (state === "empty") {
+  if (!dataset.deals.some(isOpenDeal)) {
     return (
       <main className="page">
-        <EmptyPipeline />
-      </main>
-    );
-  }
-  if (state === "offline") {
-    return (
-      <main className="page" style={{ alignItems: "center" }}>
-        <OfflineDealSheet />
+        <EmptyPipeline stages={dataset.stages} />
       </main>
     );
   }
 
   return (
     <BoardClient
+      dataset={dataset}
       dealParam={single(sp.deal)}
       ownerParam={single(sp.owner)}
       viewParam={single(sp.view)}
       quarterParam={single(sp.quarter)}
-      stateParam={state}
       paletteQuery={single(sp.q)}
       moveParam={single(sp.move)}
     />
   );
 }
+
+export const instant = false;
