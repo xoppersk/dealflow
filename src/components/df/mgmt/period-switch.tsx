@@ -1,19 +1,18 @@
 "use client";
 
-/** M-01 period switch — the screens draw "This quarter" selected; the
- *  switch is interactive local state (fixtures are quarter-to-date). */
-import { useState } from "react";
+/** M-01 period switch — writes the period to the URL; the server page
+ *  recomputes every figure for that window (real dates). */
+import { useRouter } from "next/navigation";
 import { Segmented } from "@/components/df/primitives";
-import { reportsData } from "@/lib/df/mgmt-data";
 
-export function PeriodSwitch() {
-  const [period, setPeriod] = useState(reportsData.defaultPeriod);
+export function PeriodSwitch({ periods, current }: { periods: string[]; current: string }) {
+  const router = useRouter();
   return (
     <Segmented
       label="Period"
-      options={reportsData.periods.map((p) => ({ value: p, label: p }))}
-      value={period}
-      onChange={setPeriod}
+      options={periods.map((p) => ({ value: p, label: p }))}
+      value={current}
+      onChange={(p) => router.push(`/app/reports?period=${encodeURIComponent(p)}`)}
     />
   );
 }
