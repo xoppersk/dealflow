@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { companyById, contactById, contacts, personById, weightedForDeal } from "@/lib/df/api";
+import { companyByIdSafe, contactByIdSafe, personByIdSafe, weightedForDeal } from "@/lib/df/api";
+import { useDataset } from "./dataset-context";
 import { moneyCompact } from "@/lib/df/format";
 import type { Deal } from "@/lib/df/types";
 
@@ -42,16 +43,22 @@ export function ConfirmLost({
 
   useEffect(() => {
     if (open) keepRef.current?.focus();
-  }, [open ]);
+  }, [open]);
 
   if (!open) return null;
 
-  const company = companyById(deal.companyId);
-  const owner = personById(deal.ownerId);
+  const ds = useDataset();
+  const company = companyByIdSafe(ds.companies, deal.companyId) ?? {
+    id: deal.companyId, name: deal.name, initials: "??", mgBg: "#F1EEE6", mgColor: "#17201E",
+  };
+  const owner = personByIdSafe(ds.team, deal.ownerId) ?? {
+    id: deal.ownerId, name: "Owner", firstName: "Owner", initials: "??", email: "", role: "Rep",
+    openDeals: 0, openValue: 0, openValueLabel: "", avatarBg: "#F1EEE6", avatarColor: "#17201E", online: false,
+  };
   const primaryContact = deal.detail?.people[0]
-    ? contactById(deal.detail.people[0].contactId)
-    : contacts.find((c) => c.companyId === deal.companyId);
-  const weighted = deal.detail?.weighted ?? weightedForDeal(deal);
+    ? contactByIdSafe(ds.contacts, deal.detail.people[0].contactId)
+    : ds.contacts.find((c) => c.companyId === deal.companyId);
+  const weighted = deal.detail?.weighted ?? weightedForDeal(deal, ds.stages);
 
   function trapTab(e: React.KeyboardEvent) {
     if (e.key === "Escape") {
@@ -160,7 +167,7 @@ export function ConfirmLost({
             onChange={(e) => setRemind(e.target.checked)}
             style={{ width: 16, height: 16, accentColor: "var(--progress)", margin: 0 }}
           />
-          Remind {owner.firstName} to check in again on Jan 6
+          Remind {owner.firstName} to check in again later
         </label>
 
         <div
