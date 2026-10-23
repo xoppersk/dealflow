@@ -103,7 +103,7 @@ export function CommandPalette({
     if (open) {
       requestAnimationFrame(() => inputRef.current?.focus());
     }
-  }, [open]);
+  }, [open ]); 
 
   const q = query.trim().toLowerCase();
 
