@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { openStages } from "@/lib/df/api";
+import { openStagesOf } from "@/lib/df/api";
+import type { Stage } from "@/lib/df/types";
 import { moneyCompact } from "@/lib/df/format";
 import "@/styles/system.css";
 
@@ -7,10 +8,11 @@ import "@/styles/system.css";
  * X-03 Empty pipeline (EmptyPipeline.html) — an empty workspace's board:
  * the Pipeline title + lede, Import a CSV / Add your first deal actions,
  * four stage columns at $0 with dashed drop bodies (the first invites the
- * drop), and the settings footnote. Daily renders this for
- * /app/pipeline?state=empty.
+ * drop), and the settings footnote. The pipeline page renders this when the
+ * workspace has no open deals.
  */
-export function EmptyPipeline() {
+export function EmptyPipeline({ stages }: { stages: Stage[] }) {
+  const openStages = openStagesOf(stages);
   return (
     <>
       <div className="page-head">
