@@ -1,11 +1,10 @@
 /**
- * Mock event stream (HANDOVER §10 "Realtime").
+ * Event bus (HANDOVER §10 "Realtime").
  *
- * Stands in for the realtime channel: presence, moves and edits are events on
- * a tiny in-process bus. The board seeds the stream with the one event the
- * canvas draws (Maya moved Solace Energy to Proposal, 2 min ago) and every
- * local move/undo announces through the same bus, so a future realtime
- * transport only has to republish these events.
+ * A tiny in-process bus: board moves and announcements publish here and the
+ * app shell's aria-live region subscribes. There is no seeded/fixture
+ * event in production — events only ever come from real user actions in
+ * this session; a future realtime transport only has to republish them.
  */
 
 export type DealflowEvent =
@@ -39,17 +38,3 @@ export function subscribeEvents(listener: Listener): () => void {
 export function emitEvent(event: DealflowEvent): void {
   listeners.forEach((l) => l(event));
 }
-
-/** The seeded live line from the canvas (D-02): Maya's move, 2 min ago. */
-export const seedMoveEvent: DealflowEvent = {
-  kind: "deal-moved",
-  dealId: "solace-energy-field-team-package",
-  dealName: "Field team package",
-  companyName: "Solace Energy",
-  fromStageId: "discovery",
-  toStageId: "proposal",
-  toStageName: "Proposal",
-  byId: "maya-jordan",
-  byName: "Maya",
-  agoLabel: "2 min ago",
-};
