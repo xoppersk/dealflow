@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { CSSProperties, MouseEvent } from "react";
-import { companyById, personById, stageById } from "@/lib/df/api";
+import { companyByIdSafe, personByIdSafe, stageByIdSafe } from "@/lib/df/api";
+import { useDataset } from "./dataset-context";
 import { moneyCompact, deltaVsSep } from "@/lib/df/format";
 import type { Deal, Stage } from "@/lib/df/types";
 import { AgeMeter, Monogram, OwnerAvatar } from "./primitives";
@@ -36,8 +37,14 @@ export function DealCard({
   drag?: CardDrag;
   onPlanNextStep?: (deal: Deal) => void;
 }) {
-  const company = companyById(deal.companyId);
-  const owner = personById(deal.ownerId);
+  const ds = useDataset();
+  const company = companyByIdSafe(ds.companies, deal.companyId) ?? {
+    id: deal.companyId, name: deal.name, initials: "??", mgBg: "#F1EEE6", mgColor: "#17201E",
+  };
+  const owner = personByIdSafe(ds.team, deal.ownerId) ?? {
+    id: deal.ownerId, name: "Owner", firstName: "Owner", initials: "??", email: "", role: "Rep",
+    openDeals: 0, openValue: 0, openValueLabel: "", avatarBg: "#F1EEE6", avatarColor: "#17201E", online: false,
+  };
   const step = deal.nextStep;
 
   const stateClass = selected
@@ -70,7 +77,7 @@ export function DealCard({
       {...(drag?.attributes ?? {})}
     >
       {deal.justMoved ? (
-        <span className="moved-flag">Just moved by {personById(deal.justMoved.byId).firstName}</span>
+        <span className="moved-flag">Just moved by {personByIdSafe(ds.team, deal.justMoved.byId)?.firstName ?? "a teammate"}</span>
       ) : null}
       <span className="co">
         <Monogram initials={company.initials} bg={company.mgBg} color={company.mgColor} />
@@ -171,6 +178,6 @@ export function StageHeader({
   );
 }
 
-export function stageName(id: string): string {
-  return stageById(id).name;
+export function stageName(stages: Stage[], id: string): string {
+  return stageByIdSafe(stages, id)?.name ?? id;
 }
