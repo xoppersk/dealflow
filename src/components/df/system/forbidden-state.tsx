@@ -1,14 +1,13 @@
 import Link from "next/link";
-import { personById } from "@/lib/df/api";
+import type { Person } from "@/lib/df/types";
 import "@/styles/system.css";
 
 /**
  * X-07 Forbidden (Forbidden.html) — a Rep opening Reports: the state card
  * naming the restriction, your role, the role needed, and who to ask.
- * Management renders this for /app/reports?state=forbidden.
+ * Reports renders this when the caller's workspace role is Rep.
  */
-export function ForbiddenState() {
-  const admin = personById("sheku-koroma");
+export function ForbiddenState({ admin, roleLabel = "Rep" }: { admin?: Person; roleLabel?: string }) {
   return (
     <section className="state">
       <div className="sys-state-top">
@@ -22,33 +21,39 @@ export function ForbiddenState() {
       </div>
       <h1>Reports are for managers and admins.</h1>
       <p>
-        You’re a Rep, so you can see the whole board and your own numbers, but not team reports.{" "}
-        {admin.name} can change your role.
+        You’re a {roleLabel}, so you can see the whole board and your own numbers, but not team reports.{" "}
+        {admin ? `${admin.name} can change your role.` : "A workspace admin can change your role."}
       </p>
       <dl className="kv box">
         <dt>Your role</dt>
         <dd>
           <span className="chip" style={{ background: "#ECE9E1", color: "var(--ink-2)" }}>
-            Rep
+            {roleLabel}
           </span>
         </dd>
         <dt>Needs</dt>
         <dd>Manager or Admin</dd>
         <dt>Ask</dt>
         <dd className="sys-ask-row">
-          <span
-            className="own"
-            style={{ background: admin.avatarBg, color: admin.avatarColor }}
-            aria-hidden="true"
-          >
-            {admin.initials}
-          </span>
-          {admin.name} · Admin
+          {admin ? (
+            <>
+              <span
+                className="own"
+                style={{ background: admin.avatarBg, color: admin.avatarColor }}
+                aria-hidden="true"
+              >
+                {admin.initials}
+              </span>
+              {admin.name} · Admin
+            </>
+          ) : (
+            "A workspace admin"
+          )}
         </dd>
       </dl>
       <div className="sys-state-actions">
-        <Link href="#" className="btn pri">
-          Ask Sheku for access
+        <Link href="/app/settings/team" className="btn pri">
+          Ask {admin?.firstName ?? "an admin"} for access
         </Link>
         <Link href="/app" className="btn">
           See your own numbers
