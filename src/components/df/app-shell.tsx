@@ -102,7 +102,7 @@ function UserMenu({ user }: { user?: Person }) {
       document.removeEventListener("mousedown", onDoc);
       document.removeEventListener("keydown", onKey);
     };
-  }, [open] ) 
+  }, [open ]) 
 
   return (
     <div ref={ref} style={{ position: "relative", marginLeft: 10 }}>
