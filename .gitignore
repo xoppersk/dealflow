@@ -39,3 +39,6 @@ supabase/.temp
 .idea/
 .vscode/*
 !.vscode/extensions.json
+
+# W4 test-account credentials (never commit)
+scripts/.test-users.json
