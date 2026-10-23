@@ -298,6 +298,7 @@ if (actExisting.length === 0) {
 } else {
   console.log(`Activities already present (${actExisting.length}) — skipping activity/history insert.`);
 }
+
 /* ---------------- closed deals (synthesized sample data, owner only) -------
    29 deals matching closed.json aggregates exactly for the Won set:
    daysToClose [26,31,33,34,34,35,36,38,39] (sum 306, avg 34), 9 won / 20 lost
