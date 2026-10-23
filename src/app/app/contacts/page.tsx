@@ -1,10 +1,14 @@
 import "@/styles/records.css";
+import { Suspense } from "react";
 import { ButtonLink } from "@/components/df/primitives";
-import { PlusIcon } from "@/components/df/icons";
-import { ContactsClient } from "@/components/df/records/contacts-client";
+import { ContactsClient, NewContactButton } from "@/components/df/records/contacts-client";
+import { contactListEntry } from "@/lib/df/records-data";
+import { getDataset } from "@/lib/df/db";
 
-/** R-02 Contacts (/app/contacts) — Contacts.html screen-exact. */
-export default function ContactsPage() {
+/** R-02 Contacts (/app/contacts) — Contacts.html layout; counts computed. */
+async function ContactsPageInner() {
+  const ds = await getDataset();
+  const cooling = ds.contacts.filter((c) => contactListEntry(ds, c.id)?.cooling).length;
   return (
     <main className="rec-list-main">
       <div className="page-head">
@@ -12,7 +16,10 @@ export default function ContactsPage() {
           <h1 className="h1" style={{ marginTop: 0 }}>
             Contacts
           </h1>
-          <p className="lede">142 people at 61 companies. 2 relationships tied to open deals are cooling.</p>
+          <p className="lede">
+            {ds.contacts.length} people at {ds.companies.length} companies.{" "}
+            {cooling} relationship{cooling === 1 ? "" : "s"} tied to open deals {cooling === 1 ? "is" : "are"} cooling.
+          </p>
         </div>
         <div style={{ display: "flex", gap: 8 }}>
           <ButtonLink href="/app/settings/import">
@@ -21,13 +28,20 @@ export default function ContactsPage() {
             </svg>
             Import
           </ButtonLink>
-          <ButtonLink href="/app/contacts" variant="pri">
-            <PlusIcon />
-            New contact
-          </ButtonLink>
+          <NewContactButton companies={ds.companies.map((c) => ({ id: c.id, name: c.name }))} />
         </div>
       </div>
-      <ContactsClient />
+      <ContactsClient dataset={ds} />
     </main>
   );
 }
+
+export default function ContactsPage() {
+  return (
+    <Suspense fallback={null}>
+      <ContactsPageInner />
+    </Suspense>
+  );
+}
+
+export const instant = false;
