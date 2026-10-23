@@ -1,22 +1,18 @@
 "use client";
 
 import { createBrowserClient } from "@supabase/ssr";
-import type { SupabaseClient } from "@supabase/supabase-js";
 
 /**
- * Client-side Supabase client (singleton per page load). Used by auth forms,
- * invite acceptance, and realtime subscriptions. Requires the public anon key.
+ * Browser-side Supabase client (safe to call in Client Components).
+ * Uses the public anon key — PostgreSQL Row Level Security applies to
+ * every query, so the client can never see rows its policies forbid.
+ *
+ * Untyped on purpose: v1's generated `Database` type describes the old
+ * single-tenant schema. The data team owns data typing for v2.
  */
-let browserClient: SupabaseClient | null = null;
-
-export function createClient(): SupabaseClient {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  if (!url || !anon) {
-    throw new Error("Missing NEXT_PUBLIC_SUPABASE_URL / NEXT_PUBLIC_SUPABASE_ANON_KEY");
-  }
-  if (!browserClient) {
-    browserClient = createBrowserClient(url, anon);
-  }
-  return browserClient;
+export function createClient() {
+  return createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+  );
 }
