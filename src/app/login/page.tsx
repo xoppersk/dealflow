@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Suspense } from "react";
 import { BrandMark } from "@/components/df/icons";
 import "@/styles/system.css";
 import { LoginForm } from "./login-form";
@@ -25,7 +26,9 @@ export default function LoginPage() {
       </header>
 
       <div className="sys-login-main">
-        <LoginForm />
+        <Suspense fallback={null}>
+          <LoginForm />
+        </Suspense>
 
         <aside className="sys-login-aside">
           <span className="eyebrow">
