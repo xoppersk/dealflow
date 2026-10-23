@@ -43,7 +43,7 @@ export function ConfirmLost({
 
   useEffect(() => {
     if (open) keepRef.current?.focus();
-  }, [open]);
+  }, [open ]);
 
   if (!open) return null;
 
