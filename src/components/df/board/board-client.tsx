@@ -13,27 +13,27 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
-  closed,
-  companyById,
-  deals as fixtureDeals,
+  companyByIdSafe,
   isOpenDeal,
-  openStages,
+  openStagesOf,
   openTotal,
-  personById,
-  stageById,
+  personByIdSafe,
+  stageByIdSafe,
   stageTotal,
+  TODAY_LABEL,
   weightedTotal,
 } from "@/lib/df/api";
-import { emitEvent, seedMoveEvent } from "@/lib/df/events";
+import { moveDeal } from "@/lib/df/actions";
+import { emitEvent } from "@/lib/df/events";
 import { moneyCompact } from "@/lib/df/format";
 import { checkMove, missingRequirements } from "@/lib/df/rules";
-import type { Deal, Stage } from "@/lib/df/types";
+import type { Dataset, Deal, Stage } from "@/lib/df/types";
+import { DatasetProvider } from "../dataset-context";
 import { CommandPalette } from "../command-palette";
 import { ConfirmLost } from "../confirm-lost";
 import { DealCard, StageHeader } from "../deal-card";
 import { AlertIcon, ClockWatchIcon, PlusIcon, PulseIcon } from "../icons";
 import { OwnerAvatar, Segmented } from "../primitives";
-import { StageErrorCard } from "../system/stage-error";
 import { DealPanel } from "./deal-panel";
 import { MoveMenu } from "./move-menu";
 
@@ -51,9 +51,6 @@ type ToastState =
       undoDeal: Deal | null;
     }
   | { kind: "message"; text: string };
-
-const YOU = "sheku-koroma";
-const seedDeal = seedMoveEvent.kind === "deal-moved" ? seedMoveEvent : null;
 
 function resolveDeal(param: string | undefined, list: Deal[]): Deal | undefined {
   if (!param) return undefined;
@@ -120,59 +117,48 @@ function DroppableColumn({
 /* ---------------- board ---------------- */
 
 export function BoardClient({
+  dataset,
   dealParam,
   ownerParam,
   viewParam,
   quarterParam,
-  stateParam,
   paletteQuery,
   moveParam,
 }: {
+  dataset: Dataset;
   dealParam?: string;
   ownerParam?: string;
   viewParam?: string;
   quarterParam?: string;
-  stateParam?: string;
   paletteQuery?: string;
   moveParam?: string;
 }) {
   const router = useRouter();
-  const errorStageId = stateParam === "error" ? "proposal" : null;
+  const YOU = dataset.currentUserId;
+  const stages = dataset.stages;
+  const openStages = openStagesOf(stages);
+  const closed = dataset.closed;
+  const stageNameOf = (id: string) => stageByIdSafe(stages, id)?.name ?? id;
+  const companyNameOf = (id: string) => companyByIdSafe(dataset.companies, id)?.name ?? "Deal";
 
-  const [dealsState, setDealsState] = useState<Deal[]>(fixtureDeals);
+  const [dealsState, setDealsState] = useState<Deal[]>(dataset.deals);
+  // Resync from server truth whenever a refresh delivers a new dataset.
+  const [syncedDeals, setSyncedDeals] = useState(dataset.deals);
+  if (syncedDeals !== dataset.deals) {
+    setSyncedDeals(dataset.deals);
+    setDealsState(dataset.deals);
+  }
   const [selectedId, setSelectedId] = useState<string>(
     () =>
-      resolveDeal(dealParam, fixtureDeals)?.id ??
-      resolveDeal("bracken-works", fixtureDeals)?.id ??
-      fixtureDeals[0]!.id,
+      resolveDeal(dealParam, dataset.deals)?.id ??
+      dataset.deals.find((d) => isOpenDeal(d))?.id ??
+      dataset.deals[0]?.id ??
+      "",
   );
   const [ownerFilter, setOwnerFilter] = useState<OwnerFilter>(ownerParam === "me" ? "mine" : "everyone");
   const [view, setView] = useState<ViewMode>(viewParam === "list" ? "list" : "board");
   const [quarterOnly, setQuarterOnly] = useState<boolean>(quarterParam !== "0");
-  const [toast, setToast] = useState<ToastState>(() => {
-    if (!seedDeal) return { kind: "message", text: "" };
-    // The seed toast's Undo reverts Maya's Solace move: the snapshot is the
-    // fixture deal as it was back in Discovery.
-    const solace = fixtureDeals.find((d) => d.id === seedDeal.dealId);
-    const reverted: Deal | null = solace
-      ? {
-          ...solace,
-          stageId: seedDeal.fromStageId,
-          justMoved: undefined,
-          enteredStageLabel: "9 days",
-          daysInStage: 9,
-        }
-      : null;
-    return {
-      kind: "move",
-      byId: seedDeal.byId,
-      byFirstName: seedDeal.byName,
-      companyName: seedDeal.companyName,
-      toStageName: seedDeal.toStageName,
-      agoLabel: seedDeal.agoLabel,
-      undoDeal: reverted,
-    };
-  });
+  const [toast, setToast] = useState<ToastState>({ kind: "message", text: "" });
   const [lostDeal, setLostDeal] = useState<Deal | null>(null);
   const [moveMenu, setMoveMenu] = useState<{ dealId: string; x: number; y: number } | null>(null);
   const [requirement, setRequirement] = useState<{
@@ -182,25 +168,23 @@ export function BoardClient({
   } | null>(null);
   const [reqStepText, setReqStepText] = useState("");
   const [reqStepDate, setReqStepDate] = useState("");
-  const [paletteOpen, setPaletteOpen] = useState(stateParam === "palette");
+  const [paletteOpen, setPaletteOpen] = useState(false);
   const mainRef = useRef<HTMLDivElement>(null);
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
 
-  /* ----- derived, live-recomputed figures ----- */
-  const countedDeals = useMemo(
-    () => (errorStageId ? dealsState.filter((d) => d.stageId !== errorStageId) : dealsState),
-    [dealsState, errorStageId],
-  );
+  /* ----- derived, live-recomputed figures (DF-01: every summary derives
+     from the board's current local dataset, never a snapshot) ----- */
+  const countedDeals = dealsState;
   const open = openTotal(countedDeals);
-  const weighted = weightedTotal(countedDeals);
+  const weighted = weightedTotal(countedDeals, stages);
   const openCount = countedDeals.filter(isOpenDeal).length;
-  /* Closed summary, live: the fixture's closed quarter plus any deals closed
-     on this board in this session (DF-01). */
+  /* Closed summary, live from the board's dataset: the dataset's closed
+     deals ARE the deals list's won/lost rows, counted once. */
   const liveClosed = useMemo(() => {
-    const won = closed.won + dealsState.filter((d) => d.stageId === "won").length;
-    const lost = closed.lost + dealsState.filter((d) => d.stageId === "lost").length;
-    return { won, lost, winRate: Math.round((won / (won + lost)) * 100) };
+    const won = dealsState.filter((d) => d.stageId === "won").length;
+    const lost = dealsState.filter((d) => d.stageId === "lost").length;
+    return { won, lost, winRate: won + lost > 0 ? Math.round((won / (won + lost)) * 100) : 0 };
   }, [dealsState]);
   /* Deals that need a move before they can progress, from live state: no
      next step (Kestrel), a next step that blocks the contract (Bracken), or
@@ -212,13 +196,12 @@ export function BoardClient({
       ),
     [dealsState],
   );
-  const needsMoveFor = (companyId: string) => needsMoveDeals.some((d) => d.companyId === companyId);
   const visibleDeals = useMemo(
     () => (ownerFilter === "mine" ? dealsState.filter((d) => d.ownerId === YOU) : dealsState),
-    [dealsState, ownerFilter],
+    [dealsState, ownerFilter, YOU],
   );
   const selectedDeal =
-    dealsState.find((d) => d.id === selectedId) ?? dealsState.find((d) => d.stageId !== "lost") ?? dealsState[0]!;
+    dealsState.find((d) => d.id === selectedId) ?? dealsState.find((d) => d.stageId !== "lost") ?? dealsState[0];
 
   /* ----- URL sync (filters, view, selected deal live in the URL, §10) ----- */
   const updateUrl = useCallback(
@@ -242,17 +225,19 @@ export function BoardClient({
     [updateUrl],
   );
 
-  /* ----- moving ----- */
+  /* ----- moving: optimistic local move + moveDeal server action;
+     on action error the board reverts and toasts (production contract) ----- */
   const doMove = useCallback(
-    (deal: Deal, toStageId: string, nextStepOverride?: Deal["nextStep"]) => {
+    (deal: Deal, toStageId: string, nextStepOverride?: Deal["nextStep"], lostInfo?: { reason: string; competitor: string }) => {
       const fromStageId = deal.stageId;
+      const snapshot = dealsState;
       const moved: Deal = {
         ...deal,
         stageId: toStageId,
         nextStep: nextStepOverride !== undefined ? nextStepOverride : deal.nextStep,
         daysInStage: 0,
         enteredStageLabel:
-          toStageId === "won" || toStageId === "lost" ? deal.enteredStageLabel : `In ${stageById(toStageId).name} just now`,
+          toStageId === "won" || toStageId === "lost" ? deal.enteredStageLabel : `In ${stageNameOf(toStageId)} just now`,
         justMoved:
           toStageId === "won" || toStageId === "lost"
             ? undefined
@@ -262,16 +247,16 @@ export function BoardClient({
         list.map((d) => (d.id === deal.id ? moved : d.justMoved ? { ...d, justMoved: undefined } : d)),
       );
       setSelectedId(deal.id);
-      const company = companyById(deal.companyId);
-      const toStage = stageById(toStageId);
+      const companyName = companyNameOf(deal.companyId);
+      const toStageName = stageNameOf(toStageId);
       emitEvent({
         kind: "deal-moved",
         dealId: deal.id,
         dealName: deal.name,
-        companyName: company.name,
+        companyName,
         fromStageId,
         toStageId,
-        toStageName: toStage.name,
+        toStageName,
         byId: YOU,
         byName: "You",
         agoLabel: "just now",
@@ -280,13 +265,29 @@ export function BoardClient({
         kind: "move",
         byId: YOU,
         byFirstName: "You",
-        companyName: company.name,
-        toStageName: toStage.name,
+        companyName,
+        toStageName,
         agoLabel: "just now",
         undoDeal: deal,
       });
+      void (async () => {
+        const res = await moveDeal(deal.id, toStageId, {
+          lostReason: lostInfo?.reason,
+          lostCompetitor: lostInfo?.competitor || undefined,
+          nextStepText: nextStepOverride?.text,
+          nextStepDue: nextStepOverride?.dueDate,
+        });
+        if (!res.ok) {
+          setDealsState(snapshot);
+          setToast({ kind: "message", text: `Couldn’t save that move — ${res.error}` });
+          emitEvent({ kind: "announce", message: `Move failed: ${res.error}` });
+          return;
+        }
+        router.refresh();
+      })();
     },
-    [],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [dealsState, YOU, stages, dataset],
   );
 
   const attemptMove = useCallback(
@@ -302,7 +303,10 @@ export function BoardClient({
         setLostDeal(deal);
         return;
       }
-      const missing = missingRequirements(deal, toStageId);
+      const target = stageByIdSafe(stages, toStageId);
+      const missing = target
+        ? missingRequirements(deal, target, { contacts: dataset.contacts, activities: dataset.activities })
+        : [];
       if (missing.length > 0) {
         setRequirement({ deal, toStageId, missing });
         setReqStepText("");
@@ -317,12 +321,24 @@ export function BoardClient({
   function undoToast() {
     if (toast.kind !== "move" || !toast.undoDeal) return;
     const snapshot = toast.undoDeal;
+    const current = dealsState.find((d) => d.id === snapshot.id);
     setDealsState((list) => list.map((d) => (d.id === snapshot.id ? snapshot : d)));
-    const company = companyById(snapshot.companyId);
-    const stage = stageById(snapshot.stageId);
-    const msg = `${company.name} is back in ${stage.name}`;
+    const msg = `${companyNameOf(snapshot.companyId)} is back in ${stageNameOf(snapshot.stageId)}`;
     emitEvent({ kind: "announce", message: msg });
     setToast({ kind: "message", text: `Undone — ${msg}` });
+    if (current && current.stageId !== snapshot.stageId) {
+      void (async () => {
+        const res = await moveDeal(snapshot.id, snapshot.stageId, {
+          nextStepText: snapshot.nextStep?.text,
+          nextStepDue: snapshot.nextStep?.dueDate,
+        });
+        if (!res.ok) {
+          setToast({ kind: "message", text: `Couldn’t undo on the server — ${res.error}` });
+          return;
+        }
+        router.refresh();
+      })();
+    }
   }
 
   function onDragEnd(e: DragEndEvent) {
@@ -384,7 +400,7 @@ export function BoardClient({
   const moveMenuDeal = moveMenu ? dealsState.find((d) => d.id === moveMenu.dealId) : undefined;
 
   return (
-    <>
+    <DatasetProvider dataset={dataset}>
       <div className="board-layout">
         <div className="board-main" ref={mainRef} onKeyDown={onBoardKeyDown}>
           {/* hero */}
@@ -402,7 +418,7 @@ export function BoardClient({
                 title="Toggle the Closing this quarter filter"
               >
                 <i aria-hidden="true" />
-                Closing this quarter · Tue, Oct 6
+                Closing this quarter · {TODAY_LABEL}
               </button>
               <h1 className="h1">Pipeline</h1>
             </div>
@@ -410,10 +426,7 @@ export function BoardClient({
               <div className="kpi">
                 <small>Open</small>
                 <b>{moneyCompact(open)}</b>
-                <small>
-                  {openCount} deals
-                  {errorStageId ? ` · excludes ${stageById(errorStageId).name}` : ""}
-                </small>
+                <small>{openCount} deals</small>
               </div>
               <div className="kpi">
                 <small>Weighted</small>
@@ -437,12 +450,6 @@ export function BoardClient({
               </div>
             </div>
           </div>
-
-          {errorStageId ? (
-            <p className="board-note" role="alert" style={{ margin: 0 }}>
-              3 of 4 stages loaded. Totals below leave out Proposal until it loads.
-            </p>
-          ) : null}
 
           {/* flow band */}
           <section aria-label="Open value by stage" className="flow-wrap">
@@ -506,47 +513,24 @@ export function BoardClient({
               </div>
             </div>
             <div className="att-row">
-              {needsMoveFor("bracken-works") ? (
-                <Link href="/app/deals/bracken-works" className="att">
-                  <span className="ic" style={{ background: "#FBF1E2" }}>
-                    <ClockWatchIcon />
-                  </span>
-                  <span className="body">
-                    <b>Bracken Works · $141K</b>
-                    <small className="u-watch">Redlines due Thu, blocks the contract</small>
-                  </span>
-                </Link>
-              ) : null}
-              {needsMoveFor("kestrel-freight") ? (
-                <a
-                  href="#board"
-                  className="att"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    const k = dealsState.find((d) => d.companyId === "kestrel-freight");
-                    if (k) selectDeal(k);
-                  }}
-                >
-                  <span className="ic" style={{ background: "#FBE7E4" }}>
-                    <AlertIcon />
-                  </span>
-                  <span className="body">
-                    <b>Kestrel Freight · $39.5K</b>
-                    <small className="u-act">No next step since Sep 29</small>
-                  </span>
-                </a>
-              ) : null}
-              {needsMoveFor("meridian-foods") ? (
-                <Link href="/app/deals/meridian-foods" className="att">
-                  <span className="ic" style={{ background: "#FBF1E2" }}>
-                    <PulseIcon />
-                  </span>
-                  <span className="body">
-                    <b>Meridian Foods · $64K</b>
-                    <small className="u-watch">No reply in 16 days</small>
-                  </span>
-                </Link>
-              ) : null}
+              {needsMoveDeals.slice(0, 3).map((d) => {
+                const reason = !d.nextStep
+                  ? { cls: "u-act", text: `No next step${d.lastTouchLabel ? ` since ${d.lastTouchLabel}` : ""}`, bg: "#FBE7E4", icon: "alert" as const }
+                  : d.nextStep.blocks
+                    ? { cls: "u-watch", text: "Next step overdue, blocks the contract", bg: "#FBF1E2", icon: "clock" as const }
+                    : { cls: "u-watch", text: `No reply in ${d.daysInStage} days`, bg: "#FBF1E2", icon: "pulse" as const };
+                return (
+                  <Link key={d.id} href={`/app/deals/${d.companyId}`} className="att">
+                    <span className="ic" style={{ background: reason.bg }}>
+                      {reason.icon === "alert" ? <AlertIcon /> : reason.icon === "clock" ? <ClockWatchIcon /> : <PulseIcon />}
+                    </span>
+                    <span className="body">
+                      <b>{companyNameOf(d.companyId)} · {moneyCompact(d.value)}</b>
+                      <small className={reason.cls}>{reason.text}</small>
+                    </span>
+                  </Link>
+                );
+              })}
             </div>
           </section>
 
@@ -574,8 +558,8 @@ export function BoardClient({
               }}
             >
               <span>
-                <b>{companyById(requirement.deal.companyId).name}</b> needs {requirement.missing.join(", ").toLowerCase()}{" "}
-                before it can enter {stageById(requirement.toStageId).name}. Add it here and the move goes through:
+                <b>{companyNameOf(requirement.deal.companyId)}</b> needs {requirement.missing.join(", ").toLowerCase()}{" "}
+                before it can enter {stageNameOf(requirement.toStageId)}. Add it here and the move goes through:
               </span>
               <span className="fields">
                 <label className="sr-only" htmlFor="req-step-text">
@@ -617,42 +601,31 @@ export function BoardClient({
             <DndContext sensors={sensors} onDragEnd={onDragEnd}>
               <div className="board-scroll" id="board">
                 <div className="board">
-                  {openStages.map((stage, i) =>
-                    errorStageId === stage.id ? (
-                      <StageErrorCard key={stage.id} stageName={stage.name} />
-                    ) : (
-                      <DroppableColumn key={stage.id} stage={stage} headingId={`stage-h-${stage.id}`}>
-                        <StageHeader
-                          stage={stage}
-                          deals={dealsInStageVisible(visibleDeals, stage.id)}
-                          headingId={`stage-h-${stage.id}`}
+                  {openStages.map((stage, i) => (
+                    <DroppableColumn key={stage.id} stage={stage} headingId={`stage-h-${stage.id}`}>
+                      <StageHeader
+                        stage={stage}
+                        deals={dealsInStageVisible(visibleDeals, stage.id)}
+                        headingId={`stage-h-${stage.id}`}
+                      />
+                      {dealsInStageVisible(visibleDeals, stage.id).map((deal) => (
+                        <DraggableCard
+                          key={deal.id}
+                          deal={deal}
+                          selected={selectedDeal ? deal.id === selectedDeal.id : false}
+                          onSelect={selectDeal}
+                          onPlanNextStep={(d) => router.push(`/app/activities?deal=${d.id}&log=1`)}
                         />
-                        {dealsInStageVisible(visibleDeals, stage.id).map((deal) => (
-                          <DraggableCard
-                            key={deal.id}
-                            deal={deal}
-                            selected={deal.id === selectedDeal.id}
-                            onSelect={selectDeal}
-                            onPlanNextStep={(d) => router.push(`/app/activities?deal=${d.id}&log=1`)}
-                          />
-                        ))}
-                        <span className="sr-only">Column {i + 1} of {openStages.length}</span>
-                      </DroppableColumn>
-                    ),
-                  )}
+                      ))}
+                      <span className="sr-only">Column {i + 1} of {openStages.length}</span>
+                    </DroppableColumn>
+                  ))}
                 </div>
               </div>
             </DndContext>
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: 14 }} id="board">
-              {openStages.map((stage) =>
-                errorStageId === stage.id ? (
-                  <section key={stage.id} className="panel list-group" aria-label={stage.name}>
-                    <div style={{ padding: "4px 20px 16px" }}>
-                      <StageErrorCard stageName={stage.name} />
-                    </div>
-                  </section>
-                ) : (
+              {openStages.map((stage) => (
                   <section key={stage.id} className="panel list-group" aria-label={stage.name}>
                     <div className="stage-band">
                       <b style={{ fontSize: 14 }}>{stage.name}</b>
@@ -671,8 +644,13 @@ export function BoardClient({
                           <span>In stage</span>
                         </div>
                         {dealsInStageVisible(visibleDeals, stage.id).map((deal) => {
-                          const company = companyById(deal.companyId);
-                          const owner = personById(deal.ownerId);
+                          const company = companyByIdSafe(dataset.companies, deal.companyId) ?? {
+                            id: deal.companyId, name: deal.name, initials: "??", mgBg: "#F1EEE6", mgColor: "#17201E",
+                          };
+                          const owner = personByIdSafe(dataset.team, deal.ownerId) ?? {
+                            id: deal.ownerId, name: "Owner", firstName: "Owner", initials: "??", email: "", role: "Rep",
+                            openDeals: 0, openValue: 0, openValueLabel: "", avatarBg: "#F1EEE6", avatarColor: "#17201E", online: false,
+                          };
                           return (
                             <button
                               key={deal.id}
@@ -680,7 +658,7 @@ export function BoardClient({
                               className="tr list-row"
                               data-deal-id={deal.id}
                               onClick={() => selectDeal(deal)}
-                              aria-current={deal.id === selectedDeal.id ? "true" : undefined}
+                              aria-current={selectedDeal && deal.id === selectedDeal.id ? "true" : undefined}
                             >
                               <span className="who">
                                 <span
@@ -718,15 +696,22 @@ export function BoardClient({
                       </div>
                     </div>
                   </section>
-                ),
-              )}
+              ))}
             </div>
           )}
 
           {/* live line / toast */}
           {toast.kind === "move" ? (
             <div className="toast" role="status">
-              <OwnerAvatar person={personById(toast.byId)} large />
+              <OwnerAvatar
+                person={
+                  personByIdSafe(dataset.team, toast.byId) ?? {
+                    id: toast.byId, name: "You", firstName: "You", initials: "??", email: "", role: "Rep",
+                    openDeals: 0, openValue: 0, openValueLabel: "", avatarBg: "#17201E", avatarColor: "#FFFFFF", online: true,
+                  }
+                }
+                large
+              />
               <span>
                 <b>{toast.byFirstName}</b> moved <b>{toast.companyName}</b> to {toast.toStageName} · {toast.agoLabel}
               </span>
@@ -749,7 +734,7 @@ export function BoardClient({
           ) : null}
         </div>
 
-        <DealPanel deal={selectedDeal} />
+        {selectedDeal ? <DealPanel deal={selectedDeal} /> : null}
       </div>
 
       <footer className="board-footer">
@@ -780,17 +765,15 @@ export function BoardClient({
           deal={lostDeal}
           open
           onClose={() => setLostDeal(null)}
-          onConfirm={(deal) => {
+          onConfirm={(deal, info) => {
             setLostDeal(null);
-            doMove(deal, "lost");
+            doMove(deal, "lost", undefined, info ? { reason: info.reason, competitor: info.competitor } : undefined);
           }}
         />
       ) : null}
 
-      {stateParam === "palette" ? (
-        <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} initialQuery={paletteQuery ?? "brack"} />
-      ) : null}
-    </>
+      <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} initialQuery={paletteQuery ?? ""} />
+    </DatasetProvider>
   );
 }
 
