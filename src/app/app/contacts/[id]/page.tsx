@@ -5,7 +5,9 @@ import "@/styles/records.css";
 import { ButtonLink } from "@/components/df/primitives";
 import { OwnerAvatar } from "@/components/df/primitives";
 import { CHIP_STYLES, RichText, initialsOf } from "@/components/df/records/shared";
-import { personById } from "@/lib/df/api";
+import { ContactEditForm } from "@/components/df/records/edit-forms";
+import { personByIdSafe } from "@/lib/df/api";
+import { getDataset } from "@/lib/df/db";
 import {
   colleaguesOf,
   contactBySlug,
@@ -16,9 +18,9 @@ import {
 } from "@/lib/df/records-data";
 
 /**
- * R-03 Contact detail (/app/contacts/[contact-slug]) — ContactDetail.html
- * screen-exact for Jordan Bell; the same layout renders every contact from
- * the fixtures + records.json detail (standing, history, about, colleagues).
+ * R-03 Contact detail (/app/contacts/[id]) — ContactDetail.html layout;
+ * the same layout renders every contact from the real dataset (standing,
+ * history, about, colleagues — all computed in records-data).
  *
  * Params are dynamic, so the component that awaits them renders inside a
  * Suspense boundary; the static shell still prerenders.
@@ -33,16 +35,18 @@ export default function ContactDetailPage({ params }: { params: Promise<{ id: st
 
 async function ContactDetailInner({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const contact = contactBySlug(id);
+  const ds = await getDataset();
+  const contact = contactBySlug(ds, id);
   if (!contact) notFound();
 
-  const company = safeCompany(contact.companyId);
-  const detail = contactDetail(contact.id);
-  const list = contactListEntry(contact.id);
-  const owner = list ? personById(list.ownerId) : null;
-  const colleagues = colleaguesOf(contact.id);
+  const company = safeCompany(ds, contact.companyId);
+  const detail = contactDetail(ds, contact.id);
+  const list = contactListEntry(ds, contact.id);
+  const owner = list ? personByIdSafe(ds.team, list.ownerId) : undefined;
+  const colleagues = colleaguesOf(ds, contact.id);
   const history = detail.history;
-  const dark = contact.id === "jordan-bell";
+  const biggestDeal = [...ds.deals].sort((a, b) => b.value - a.value)[0];
+  const dark = contact.id === biggestDeal?.detail?.people[0]?.contactId;
 
   return (
     <div className="rec-layout">
@@ -103,7 +107,7 @@ async function ContactDetailInner({ params }: { params: Promise<{ id: string }> 
             Where things stand
           </h2>
           <p>
-            <RichText parts={standingPartsFor(contact.id)} />
+            <RichText parts={standingPartsFor(ds, contact.id)} />
           </p>
         </section>
 
@@ -113,7 +117,8 @@ async function ContactDetailInner({ params }: { params: Promise<{ id: string }> 
             <span>Newest first</span>
           </div>
           {history.map((h, i) => {
-            const actor = personById(h.ownerId);
+            const actor = personByIdSafe(ds.team, h.ownerId);
+            if (!actor) return null;
             const last = i === history.length - 1;
             return (
               <div key={`${h.date}-${h.title}-${i}`} className="ev" style={last ? { paddingBottom: 15 } : undefined}>
@@ -135,6 +140,9 @@ async function ContactDetailInner({ params }: { params: Promise<{ id: string }> 
           <h2 className="lab" style={{ marginBottom: 14 }}>
             About
           </h2>
+          <div style={{ marginBottom: 14 }}>
+            <ContactEditForm contact={contact} />
+          </div>
           <dl className="kv">
             <dt>Role on deal</dt>
             <dd>{detail.roleOnDeal}</dd>
@@ -176,7 +184,7 @@ async function ContactDetailInner({ params }: { params: Promise<{ id: string }> 
           <section style={{ paddingTop: 20, borderTop: "1px solid var(--rule)" }}>
             <h2>Also at {company.name}</h2>
             {colleagues.map((c, i) => {
-              const cd = contactDetail(c.id);
+              const cd = contactDetail(ds, c.id);
               return (
                 <div key={c.id} className="pp" style={i === 0 ? { borderTop: 0 } : undefined}>
                   <span className="av" aria-hidden="true">
@@ -199,3 +207,5 @@ async function ContactDetailInner({ params }: { params: Promise<{ id: string }> 
     </div>
   );
 }
+
+export const instant = false;
