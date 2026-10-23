@@ -209,7 +209,7 @@ export default function SetupDealForm({
                   Import a list instead
                 </Link>
                 <button type="submit" className="btn pri" disabled={busy}>
-                  {busy ? "Adding…” : "Add deal and continue"}
+                  {busy ? "Adding\u2026" : "Add deal and continue"}
                 </button>
               </div>
             </div>
