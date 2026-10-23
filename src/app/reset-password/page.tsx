@@ -45,7 +45,7 @@ export default function ResetPasswordPage() {
       </div>
 
       <footer className="sys-login-foot">
-        <span>© 2026 [Company]</span>
+        <span>© 2026 Sevyn Labs</span>
         <nav aria-label="Legal">
           <Link href="#">Privacy</Link>
           <Link href="#">Terms</Link>
