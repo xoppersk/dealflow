@@ -9,7 +9,7 @@ export const metadata: Metadata = { title: "Accept invitation" };
 
 /**
  * /accept?token=… — team-invite landing. NO v2 SCREEN (coordinator
- * ruling): kept in Login.html's visual language — brand header, the dark
+ * ruling): kept in Login.html’s visual language — brand header, the dark
  * product-statement panel, the legal footer. Behaviour is real: the
  * token is looked up server-side (service role), a signed-out invitee
  * creates their account with the invited email, and acceptance adds
@@ -48,7 +48,7 @@ export default function AcceptPage() {
       </div>
 
       <footer className="sys-login-foot">
-        <span>© 2026 [Company]</span>
+        <span>© 2026 Sevyn Labs</span>
         <nav aria-label="Legal">
           <Link href="#">Privacy</Link>
           <Link href="#">Terms</Link>
