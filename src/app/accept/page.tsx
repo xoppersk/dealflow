@@ -48,7 +48,7 @@ export default function AcceptPage() {
       </div>
 
       <footer className="sys-login-foot">
-        <span>© 2026 Sevyn Labs</span>
+        <span>© 2026 Sevyn Labs · <a href="tel:+12762702729">(276) 270-2729</a></span>
         <nav aria-label="Legal">
           <Link href="#">Privacy</Link>
           <Link href="#">Terms</Link>
